@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "FFLSharp.ShaderTexVeldridNew": {
+    "FFLSharp.VeldridBasicShaderSample": {
       "commandName": "Project",
       "nativeDebugging": true
     }

@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FFLSharp.Interop\FFLSharp.Interop.csproj" />
+    <ProjectReference Include="..\..\FFLSharp.Interop\FFLSharp.Interop.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "FFLSharp.ShaderTextureTestVeldrid": {
+    "FFLSharp.ShaderTextureTest": {
       "commandName": "Project",
       "nativeDebugging": true
     }

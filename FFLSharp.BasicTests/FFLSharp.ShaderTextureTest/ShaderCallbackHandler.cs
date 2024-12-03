@@ -119,10 +119,10 @@ namespace FFLSharp.ShaderTextureTestVeldrid
                 v_position = vertexUniforms.u_mv * a_position;
                 gl_Position = vertexUniforms.u_proj * v_position;
 
-                v_normal = a_normal;
-                v_tangent = v_tangent;
+                //v_normal = a_normal;
+                //v_tangent = v_tangent;
                 v_texCoord = a_texCoord;
-                v_color = a_color;
+                //v_color = a_color;
 
             }
             ";

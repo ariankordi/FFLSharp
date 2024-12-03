@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FFLSharp.BasicTest\FFLSharp.BasicTest.csproj" />
-    <ProjectReference Include="..\FFLSharp.Interop\FFLSharp.Interop.csproj" />
+    <ProjectReference Include="..\..\FFLSharp.Interop\FFLSharp.Interop.csproj" />
     <ProjectReference Include="..\FFLSharp.TextureTest\FFLSharp.TextureTest.csproj" />
   </ItemGroup>
 
