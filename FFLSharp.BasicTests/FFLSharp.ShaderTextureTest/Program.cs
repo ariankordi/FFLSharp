@@ -10,10 +10,10 @@ using FFLSharp.Interop;
 using static FFLSharp.BasicTest.Program; // CreateCharModelFromStoreData
 using System.Runtime.CompilerServices; // for InitializeFFL, CleanupFFL
 
-using FFLSharp.TextureCallbackTestVeldrid; // TextureCallbackHandler
+using FFLSharp.TextureTest; // TextureCallbackHandler
 using Veldrid.SPIRV;
 
-namespace FFLSharp.ShaderTextureTestVeldrid
+namespace FFLSharp.ShaderTextureTest
 {
     class Program : IDisposable
     {
@@ -36,10 +36,10 @@ namespace FFLSharp.ShaderTextureTestVeldrid
 
         // For faceline and mask textures
         private static Framebuffer _facelineFramebuffer;
-        private static Texture _facelineTexture;
+        private static Texture FacelineTexture;
 
         private static Framebuffer[] _maskFramebuffers = new Framebuffer[(int)FFLExpression.FFL_EXPRESSION_MAX];
-        private static Texture[] _maskTextures = new Texture[(int)FFLExpression.FFL_EXPRESSION_MAX];
+        private static Texture[] MaskTextures = new Texture[(int)FFLExpression.FFL_EXPRESSION_MAX];
 
         static void Main(string[] args)
         {
@@ -227,7 +227,7 @@ namespace FFLSharp.ShaderTextureTestVeldrid
             uint textureResolutionHalf = textureResolution / 2; // faceline texture is half width
 
             // Create a render target texture with the swapchain format.
-            _facelineTexture = factory.CreateTexture(
+            FacelineTexture = factory.CreateTexture(
                 TextureDescription.Texture2D(
                     textureResolutionHalf, textureResolution, 1, 1, // Width, Height, MipLevels, SampleCount
                     swapchainFormat,                                   // Use the same format as the swapchain
@@ -236,15 +236,15 @@ namespace FFLSharp.ShaderTextureTestVeldrid
 
             // Create a framebuffer with the render target texture.
             _facelineFramebuffer = factory.CreateFramebuffer(
-                new FramebufferDescription(null, _facelineTexture));
+                new FramebufferDescription(null, FacelineTexture));
 
-            _maskTextures[expression] = factory.CreateTexture(
+            MaskTextures[expression] = factory.CreateTexture(
                 TextureDescription.Texture2D(
                     textureResolution, textureResolution, 1, 1,    // Width, Height, MipLevels, SampleCount
                     swapchainFormat,                                  // Use the same format as the swapchain
                     TextureUsage.RenderTarget | TextureUsage.Sampled)); // Enable rendering to and sampling from it
             _maskFramebuffers[expression] = factory.CreateFramebuffer(
-                new FramebufferDescription(null, _maskTextures[expression]));
+                new FramebufferDescription(null, MaskTextures[expression]));
 
             UIntPtr faceTextureHandle = UIntPtr.Zero; // TODO: JUST HERE SO THAT IT CAN BE FREEEEEED
             UIntPtr maskTextureHandle = UIntPtr.Zero;
@@ -307,13 +307,13 @@ namespace FFLSharp.ShaderTextureTestVeldrid
 
                 // ok finally set that texture as the texture for that mask yes. TODO: SetExpression FUNCTION
                 FFLDrawParam* pMaskDrawParam = FFL.GetDrawParamXluMask(&charModel); // usually returned as const
-                maskTextureHandle = _textureCallbackHandler.AddTextureToMap(_maskTextures[expression]);
+                maskTextureHandle = _textureCallbackHandler.AddTextureToMap(MaskTextures[expression]);
                 pMaskDrawParam->modulateParam.pTexture2D = (void*)maskTextureHandle;
                 // faceline texture param
                 if (*ppFacelineTexture2D != null) // otherwise it is bound as const color so it ok
                 {
                     FFLDrawParam* pFaceDrawParam = FFL.GetDrawParamOpaFaceline(&charModel);
-                    faceTextureHandle = _textureCallbackHandler.AddTextureToMap(_facelineTexture);
+                    faceTextureHandle = _textureCallbackHandler.AddTextureToMap(FacelineTexture);
                     pFaceDrawParam->modulateParam.pTexture2D = (void*)faceTextureHandle;
                 }
             }
@@ -457,8 +457,8 @@ namespace FFLSharp.ShaderTextureTestVeldrid
             // in the texture callback handler class? lol?
             //_textureCallbackHandler.DisposeTextureHandle();
             /*
-            _facelineTexture?.Dispose();
-            foreach (var texture in _maskTextures)
+            FacelineTexture?.Dispose();
+            foreach (var texture in MaskTextures)
             {
                 texture?.Dispose();
             }

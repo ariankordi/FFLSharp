@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Diagnostics;
 
 using FFLSharp.Interop;
-using FFLSharp.Veldrid;
+using FFLSharp.VeldridRenderer;
 
 namespace FFLSharp.VeldridBasicShaderSample
 {
@@ -24,11 +24,9 @@ namespace FFLSharp.VeldridBasicShaderSample
         // Resource manager including pipelines, layouts, etc.
         private static CharModelResource _resourceManager;
 
-        //private unsafe static FFLTextureCallback* _textureCallback;
-
         static void Main(string[] args)
         {
-            #region Initialize Veldrid
+            #region Veldrid Initialization/Startup
 
             // Create window and GraphicsDevice.
             GraphicsDeviceOptions options = new(
@@ -72,9 +70,22 @@ namespace FFLSharp.VeldridBasicShaderSample
             #endregion
 
             //_commandList.PushDebugGroup("FFLInitCharModelCPUStep Uploading Textures"); // doesn't even appear
-            FFLCharModel charModel = new();
-            InstantiateFFLAndHelpers(_graphicsDevice, ref charModel); // also initializes charmodel
+
+            InstantiateFFLAndHelpers(_graphicsDevice); // also initializes charmodel
             //_commandList.PopDebugGroup();
+
+            // sample miis
+            List<byte[]> storeDataList = SampleData.StoreDataSampleList;
+
+            /*
+            FFLManager.CreateCharModelFromStoreData(ref charModel,
+                storeDataList.First(), _textureManager); // first sample
+            */
+            FFLCharModel charModel = FFLManager.CreateCharModel(new(
+                data: storeDataList.First(),
+                expressionFlag: CharModelInitParam.MakeExpressionFlag(FFLExpression.FFL_EXPRESSION_NORMAL,
+                                                                      FFLExpression.FFL_EXPRESSION_BLINK)
+            ), _textureManager);
 
             _resourceManager = new CharModelResource(_graphicsDevice);
 
@@ -105,13 +116,11 @@ namespace FFLSharp.VeldridBasicShaderSample
             float rotationAngle = 0.0f; // Initial rotation angle
 
             long blinkEndTime = 0;
-            FFLExpression currentExpression = FFLExpression.FFL_EXPRESSION_NORMAL;
+            FFLExpression originalExpression = charModelGpuBuffer.CurrentExpression;
+            FFLExpression currentExpression = originalExpression;
 
 
 
-
-            // Assuming storeDataList is your list of StoreData objects
-            List<byte[]> storeDataList = new((new[] { FFLHelpers.JasmineStoreData, FFLHelpers.BroStoreData }));
 
             // This will keep track of the current model index
             int currentStoreDataIndex = 0;
@@ -164,10 +173,12 @@ namespace FFLSharp.VeldridBasicShaderSample
                     }
 
                     // Create a new model from the next store data in the list
-                    unsafe
-                    {
-                        FFLHelpers.CreateCharModelFromStoreData(ref charModel, storeDataList[currentStoreDataIndex], _textureManager.GetTextureCallback());
-                    }
+                    charModel = FFLManager.CreateCharModel(new(
+                        data: storeDataList[currentStoreDataIndex],
+                        expressionFlag: CharModelInitParam.MakeExpressionFlag(
+                                        FFLExpression.FFL_EXPRESSION_NORMAL,
+                                        FFLExpression.FFL_EXPRESSION_BLINK)), _textureManager);
+
                     charModelGpuBuffer?.Dispose();
                     charModelGpuBuffer = new CharModelImpl(_graphicsDevice, _resourceManager, _textureManager, factory, ref charModel);
                     charModelGpuBuffer.UpdateViewUniforms(modelMatrix, viewMatrix, projectionMatrix);
@@ -186,7 +197,7 @@ namespace FFLSharp.VeldridBasicShaderSample
                 if (currentTime >= 3000)
                 {
                     // Blink for 80ms
-                    if (currentExpression == FFLExpression.FFL_EXPRESSION_NORMAL)
+                    if (currentExpression == originalExpression)
                     {
                         charModelGpuBuffer.SetExpression(FFLExpression.FFL_EXPRESSION_BLINK);
                         currentExpression = FFLExpression.FFL_EXPRESSION_BLINK;
@@ -198,8 +209,8 @@ namespace FFLSharp.VeldridBasicShaderSample
                 // Check if we need to revert back to normal after 80ms
                 if (currentExpression == FFLExpression.FFL_EXPRESSION_BLINK && currentTime >= blinkEndTime)
                 {
-                    charModelGpuBuffer.SetExpression(FFLExpression.FFL_EXPRESSION_NORMAL);
-                    currentExpression = FFLExpression.FFL_EXPRESSION_NORMAL;
+                    charModelGpuBuffer.SetExpression(originalExpression);
+                    currentExpression = originalExpression;
                     Console.WriteLine("unblink");
                     _stopwatch2.Restart();
                 }
@@ -219,38 +230,27 @@ namespace FFLSharp.VeldridBasicShaderSample
             // Window is exited, dispose resources in this scope.
             charModelGpuBuffer?.Dispose();
 
-            // De-initialize FFL: delete all CharModels and call FFLExit.
-            //FFLHelpers.DeleteCharModel(ref charModel); // Deleted by CharModelRenderer
-            FFLHelpers.CleanupFFL(); // Calls FFLExit and then frees FFL resource.
-
             // -> Dispose();
             #endregion
         }
 
-        private static unsafe void InstantiateFFLAndHelpers(GraphicsDevice graphicsDevice, ref FFLCharModel charModel)
+        private static void InstantiateFFLAndHelpers(GraphicsDevice graphicsDevice)
         {
             // Load FFL resource
-            FFLHelpers.InitializeFFL(); // basically calls FFLInitResEx
+            FFLManager.InitializeFFL(); // basically calls FFLInitResEx
 
             // Initialize texture callback handler and register with FFL.
             _textureManager = new(graphicsDevice);
             //_textureManager.RegisterCallback(); // Now explicitly specifying it.
             //_textureCallback = _textureManager.GetTextureCallback();
 
-            FFL.SetScale(0.1f); // reset FFL scale from 10.0 to 1.0
-            // Accomodate texture flipping if running on OpenGL.
-            unsafe
-            {
-                // apparently inverted means NOT opengl
-                bool enableTextureFlipY = graphicsDevice.BackendType == GraphicsBackend.OpenGL && !graphicsDevice.IsClipSpaceYInverted;
-                FFL.SetTextureFlipY(*(byte*)&enableTextureFlipY); // flips Y in mask/faceline textures
-            }
-            // Enable use of 8_8_8_8 format for normals rather than 10_10_10_2.
-            FFL.SetNormalIsSnorm8_8_8_8(1); // Because Veldrid doesn't support 10_10_10_2
+            FFLProperties.ModelScale = 0.1f; // reset FFL scale from 10.0 to 1.0
 
-            // FFLInitCharModelCPUStep:
-            FFLResult result = FFLHelpers.CreateCharModelFromStoreData(ref charModel,
-                FFLHelpers.JasmineStoreData, _textureManager.GetTextureCallback());
+            // apparently inverted means NOT opengl
+            FFLProperties.TextureFlipY = graphicsDevice.BackendType == GraphicsBackend.OpenGL && !graphicsDevice.IsClipSpaceYInverted;
+
+            // Enable use of 8_8_8_8 format for normals rather than 10_10_10_2.
+            FFLProperties.NormalIsSnorm8_8_8_8 = true; // Because Veldrid doesn't support 10_10_10_2
         }
 
         public void Dispose()
@@ -258,6 +258,8 @@ namespace FFLSharp.VeldridBasicShaderSample
             // Free texture and resource managers
             _textureManager.Dispose();
             _resourceManager.Dispose();
+
+            FFLManager.Dispose(); // Calls FFLExit and then frees FFL resource.
 
             _graphicsDevice?.Dispose();
             _commandList?.Dispose();

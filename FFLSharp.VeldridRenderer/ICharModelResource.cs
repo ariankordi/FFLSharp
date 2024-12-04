@@ -1,6 +1,6 @@
 ﻿using Veldrid;
 
-namespace FFLSharp.Veldrid
+namespace FFLSharp.VeldridRenderer
 {
     public interface ICharModelResource
     {

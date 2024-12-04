@@ -1,5 +1,5 @@
 ﻿using FFLSharp.Interop;
-using FFLSharp.TextureCallbackTestVeldrid;
+using FFLSharp.TextureTest;
 using System;
 using System.Collections.Concurrent;
 using System.Numerics;
@@ -9,7 +9,7 @@ using System.Text;
 using Veldrid;
 using Veldrid.SPIRV;
 
-namespace FFLSharp.ShaderTextureTestVeldrid
+namespace FFLSharp.ShaderTextureTest
 {
     public unsafe class ShaderCallbackHandler : IDisposable
     {

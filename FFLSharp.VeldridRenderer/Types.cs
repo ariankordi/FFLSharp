@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Veldrid;
 
-namespace FFLSharp.Veldrid
+namespace FFLSharp.VeldridRenderer
 {
     /// <summary>
     /// Vertex uniforms used for 3D shaders.

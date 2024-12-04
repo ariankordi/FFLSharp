@@ -1,12 +1,13 @@
 ﻿using FFLSharp.Interop;
-using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Veldrid;
 
-namespace FFLSharp.Veldrid
+using FFLSharp;
+
+namespace FFLSharp.VeldridRenderer
 {
     public unsafe class TextureManager : IDisposable, ITextureManager
     {

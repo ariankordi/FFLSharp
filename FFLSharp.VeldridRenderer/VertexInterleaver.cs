@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace FFLSharp.Veldrid
+namespace FFLSharp.VeldridRenderer
 {
     public static class VertexInterleaver
     {

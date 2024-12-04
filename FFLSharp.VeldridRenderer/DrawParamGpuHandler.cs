@@ -5,14 +5,14 @@ using System.Diagnostics; // for assert
 using Veldrid;
 using System.Reflection;
 
-namespace FFLSharp.Veldrid
+namespace FFLSharp.VeldridRenderer
 {
-    public class DrawParamGpuImpl : IDisposable
+    public class DrawParamGpuHandler : IDisposable
     {
         private readonly GraphicsDevice _graphicsDevice;
         private readonly ResourceFactory _factory;
         private readonly ICharModelResource _resourceManager;
-        private readonly ITextureManager _textureManager;
+        private readonly TextureManager _textureManager;
 
         private DeviceBuffer _indexBuffer;
         private uint _indexCount; // Set in UpdateIndexBuffer(), used in Draw().
@@ -52,8 +52,8 @@ namespace FFLSharp.Veldrid
         /// <param name="textureManager">TextureManager containing textures referenced by DrawParams.</param>
         /// <param name="drawParam">FFLDrawParam instance containing current shape to render.</param>
         /// <param name="overrideTexture">Optional texture that will override the DrawParam texture if set. Intended for mask and faceline.</param>
-        public DrawParamGpuImpl(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
-            ITextureManager textureManager, ref FFLDrawParam drawParam, Texture? overrideTexture = null)
+        public DrawParamGpuHandler(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+            TextureManager textureManager, ref FFLDrawParam drawParam, Texture? overrideTexture = null)
         {
             _graphicsDevice = graphicsDevice;
             _factory = graphicsDevice.ResourceFactory;

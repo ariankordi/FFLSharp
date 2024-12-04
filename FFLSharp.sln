@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.Interop", "FFLSharp.Interop\FFLSharp.Interop.csproj", "{F1318A4E-F7AF-4950-ABE6-B0D44886B491}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.Veldrid", "FFLSharp.Veldrid\FFLSharp.Veldrid.csproj", "{92907489-929C-49E7-886D-4E950F018AB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.VeldridRenderer", "FFLSharp.Veldrid\FFLSharp.VeldridRenderer.csproj", "{92907489-929C-49E7-886D-4E950F018AB3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FFLSharp.BasicTests", "FFLSharp.BasicTests", "{9BF303D7-D44F-4D49-8DFA-9E0BB825D042}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.TextureTest", "FFLSharp.BasicTests\FFLSharp.TextureTest\FFLSharp.TextureTest.csproj", "{F6F25410-A59F-4DBA-88FD-D2AADE7320B3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.ShaderTextureTest", "FFLSharp.BasicTests\FFLSharp.ShaderTextureTest\FFLSharp.ShaderTextureTest.csproj", "{5F764A5C-CD78-4609-AE22-627464569030}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFLSharp.FFLManager", "FFLSharp.FFLManager\FFLSharp.FFLManager.csproj", "{CA79CC0D-E0CC-40DC-A8A2-A70EFA93C6BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{5F764A5C-CD78-4609-AE22-627464569030}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F764A5C-CD78-4609-AE22-627464569030}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F764A5C-CD78-4609-AE22-627464569030}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA79CC0D-E0CC-40DC-A8A2-A70EFA93C6BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA79CC0D-E0CC-40DC-A8A2-A70EFA93C6BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA79CC0D-E0CC-40DC-A8A2-A70EFA93C6BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA79CC0D-E0CC-40DC-A8A2-A70EFA93C6BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

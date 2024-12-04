@@ -5,7 +5,7 @@ using Veldrid;
 using FFLSharp.Interop;
 using System.Runtime.CompilerServices;
 
-namespace FFLSharp.TextureCallbackTestVeldrid
+namespace FFLSharp.TextureTest
 {
     public unsafe class TextureCallbackHandler : IDisposable
     {

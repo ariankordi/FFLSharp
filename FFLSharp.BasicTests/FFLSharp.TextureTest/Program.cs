@@ -10,7 +10,7 @@ using FFLSharp.Interop;
 using static FFLSharp.BasicTest.Program;
 using System.Runtime.CompilerServices; // for InitializeFFL, CleanupFFL
 
-namespace FFLSharp.TextureCallbackTestVeldrid
+namespace FFLSharp.TextureTest
 {
     class Program
     {

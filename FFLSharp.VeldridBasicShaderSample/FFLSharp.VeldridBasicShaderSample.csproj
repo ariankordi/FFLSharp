@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -16,8 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FFLSharp.FFLManager\FFLSharp.FFLManager.csproj" />
     <ProjectReference Include="..\FFLSharp.Interop\FFLSharp.Interop.csproj" />
-    <ProjectReference Include="..\FFLSharp.Veldrid\FFLSharp.Veldrid.csproj" />
+    <ProjectReference Include="..\FFLSharp.Veldrid\FFLSharp.VeldridRenderer.csproj" />
   </ItemGroup>
 
 </Project>
