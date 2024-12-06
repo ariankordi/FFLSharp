@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FFLSharp.FFLManager\FFLSharp.FFLManager.csproj" />
     <ProjectReference Include="..\FFLSharp.Interop\FFLSharp.Interop.csproj" />
-    <ProjectReference Include="..\FFLSharp.Veldrid\FFLSharp.VeldridRenderer.csproj" />
+    <ProjectReference Include="..\FFLSharp.VeldridRenderer\FFLSharp.VeldridRenderer.csproj" />
   </ItemGroup>
 
 </Project>

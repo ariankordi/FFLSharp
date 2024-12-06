@@ -21,7 +21,7 @@ namespace FFLSharp.VeldridRenderer
 
         // Faceline texture and framebuffer.
         public Texture? FacelineTexture;
-        private readonly List<DrawParamGpuHandler> _tmpParams = new(); // Temporary DrawParamRenderer instances for texture drawing.
+        private readonly List<DrawParamGpuHandler> _tmpParams = new List<DrawParamGpuHandler>(); // Temporary DrawParamRenderer instances for texture drawing.
         // Mask textures and framebuffers, one for each expression.
         public readonly Texture[] MaskTextures = new Texture[(int)FFLExpression.FFL_EXPRESSION_MAX];
 
@@ -237,7 +237,7 @@ namespace FFLSharp.VeldridRenderer
             // Not meant for shapes because no view uniforms are ever set.
             Debug.Assert(param.modulateParam.type > FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MAX - 1);
             // Create and use this DrawParamRenderer once.
-            DrawParamGpuHandler renderer = new(_graphicsDevice, _resourceManager, _textureManager, ref param);
+            DrawParamGpuHandler renderer = new DrawParamGpuHandler(_graphicsDevice, _resourceManager, _textureManager, ref param);
             // Assuming CommandList is ready for drawing, and doesn't
             // require view uniforms to be set (so, for 2D planes)
             renderer.Draw(commandList);

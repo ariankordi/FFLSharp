@@ -119,13 +119,13 @@ namespace FFLSharp.VeldridRenderer
             SwapchainTexFormat = _graphicsDevice.MainSwapchain.Framebuffer.OutputDescription.ColorAttachments[0].Format;
             Debug.Assert(SwapchainTexFormat != null);
             // Pretty much the same as the swapchain output description but with no depth buffer at all.
-            OutputDescription noDepthOutputDescription = new(depthAttachment: null,
+            OutputDescription noDepthOutputDescription = new OutputDescription(depthAttachment: null,
                                         colorAttachments: new OutputAttachmentDescription(SwapchainTexFormat.Value));
 
             #region Faceline pipeline
 
             // Create pipeline for rendering 2D faceline texture.
-            GraphicsPipelineDescription facelinePipelineDescription = new()
+            GraphicsPipelineDescription facelinePipelineDescription = new GraphicsPipelineDescription()
             {
                 BlendState = new BlendStateDescription
                 {
@@ -193,7 +193,7 @@ namespace FFLSharp.VeldridRenderer
 
             // DrawOpa stage pipelines
 
-            GraphicsPipelineDescription pipelineDescription = new()
+            GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription()
             {
                 // Disable blending for DrawOpa shapes.
                 BlendState = BlendStateDescription.SingleDisabled,

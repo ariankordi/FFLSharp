@@ -36,7 +36,7 @@ namespace FFLSharp
         /// Structure where the size and data pointer to resources are stored.
         /// FFL accesses this on every FFLInitCharModelCPUStep call.
         /// </summary>
-        private static FFLResourceDesc _resourceDesc = new();
+        private static FFLResourceDesc _resourceDesc = new FFLResourceDesc();
 
         private const uint _resourceHeaderDefaultSize = 18944; // sizeof(FFLiResourceHeaderDefaultData)
 
@@ -46,7 +46,7 @@ namespace FFLSharp
         /// <param name="charModel">FFLCharModel instance to be created before calling this.</param>
         /// <param name="pStoreDataBuffer">FFLStoreData representing the CharModel's data.</param>
         /// <param name="pCallback">Pointer to your FFLTextureCallback instance. If this is null, you need to use FFLSetTextureCallback to set a global callback.</param>
-        public unsafe static void CreateCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, FFLTextureCallback* pCallback = null)
+        public static unsafe void CreateCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, FFLTextureCallback* pCallback = null)
         {
             FFLCharModelSource modelSource;
             fixed (byte* pBuffer = pStoreDataBuffer)
@@ -78,13 +78,16 @@ namespace FFLSharp
             // loaded, or textures cannot be loaded, data cannot be
             // verified or allocations fail and segfault somehow.
 
-            FFLResult result = FFL.InitCharModelCPUStepWithCallback(
-                (FFLCharModel*)Unsafe.AsPointer(ref charModel),
-                &modelSource,
-                &modelDesc,
-                pCallback//(FFLTextureCallback*)Unsafe.AsPointer(ref callback)
-            );
-
+            FFLResult result;
+            fixed (FFLCharModel* pCharModel = &charModel)
+            {
+                result = FFL.InitCharModelCPUStepWithCallback(
+                    pCharModel,
+                    &modelSource,
+                    &modelDesc,
+                    pCallback//(FFLTextureCallback*)Unsafe.AsPointer(ref callback)
+                );
+            }
 
             // Throw a more specific exception for this result.
             if (result == FFLResult.FFL_RESULT_FILE_INVALID)
@@ -99,7 +102,7 @@ namespace FFLSharp
         /// <summary>
         /// Overload to initialize using an ITextureManager instead of an FFLTextureCallback pointer.
         /// </summary>
-        public unsafe static void CreateCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, ITextureManager textureManager)
+        public static unsafe void CreateCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, ITextureManager textureManager)
         {
             FFLTextureCallback* pCallback;
             pCallback = textureManager.GetTextureCallback();
@@ -111,7 +114,7 @@ namespace FFLSharp
         /// Creates and initializes an FFLCharModel instance using a CharModelInitParam.
         /// </summary>
         /// <param name="param">Instance of CharModelInitParam containing configuration.</param>
-        public unsafe static FFLCharModel CreateCharModel(CharModelInitParam param, ITextureManager textureManager)
+        public static unsafe FFLCharModel CreateCharModel(CharModelInitParam param, ITextureManager textureManager)
         {
             FFLTextureCallback* pCallback;
             // Get the texture callback to pass into FFLInitCharModelCPUStepWithCallback.
@@ -121,7 +124,7 @@ namespace FFLSharp
                 throw new ArgumentNullException(nameof(param));
 
             // Create an FFLCharModel instance.
-            FFLCharModel charModel = new();
+            FFLCharModel charModel = new FFLCharModel();
 
             // Pin the managed structures.
             fixed (FFLCharModelSource* pModelSource = &param.ModelSource)
@@ -130,7 +133,7 @@ namespace FFLSharp
                 Console.WriteLine("Calling FFLInitCharModelCPUStepWithCallback");
 
                 FFLResult result = FFL.InitCharModelCPUStepWithCallback(
-                    (FFLCharModel*)Unsafe.AsPointer(ref charModel),
+                    &charModel,
                     pModelSource,
                     pModelDesc,
                     pCallback
@@ -158,9 +161,12 @@ namespace FFLSharp
         /// Calls FFLDeleteCharModel, deleting a CharModel's shapes and texture handles.
         /// </summary>
         /// <param name="charModel">CharModel reference.</param>
-        public unsafe static void DeleteCharModel(ref FFLCharModel charModel)
+        public static unsafe void DeleteCharModel(ref FFLCharModel charModel)
         {
-            FFL.DeleteCharModel((FFLCharModel*)Unsafe.AsPointer(ref charModel));
+            fixed (FFLCharModel* pCharModel = &charModel)
+            {
+                FFL.DeleteCharModel(pCharModel);
+            }
         }
 
         private const FFLFontRegion _fontRegion = FFLFontRegion.FFL_FONT_REGION_JP_US_EU; // Default font region used even internally.
@@ -244,14 +250,14 @@ namespace FFLSharp
         /// <param name="resourceType">The resource type of the ResourceDesc to set.</param>
         /// <param name="dataPtr">Pointer to the data. Caller must free this after exiting FFL.</param>
         /// <param name="size">Size of the data.</param>
-        private unsafe static void SetResourceDesc(FFLResourceType resourceType, IntPtr dataPtr, uint size)
+        private static unsafe void SetResourceDesc(FFLResourceType resourceType, IntPtr dataPtr, uint size)
         {
             // Set the size field
             _resourceDesc.size[(int)resourceType] = size;
             _resourceDesc.pData[(int)resourceType] = (void*)dataPtr;
         }
 
-        public unsafe static void DisposeResourceDesc()
+        public static unsafe void DisposeResourceDesc()
         {
             // Iterate through resourceDesc, which is an array representing all FFLResourceTypes.
             for (FFLResourceType i = 0; i < FFLResourceType.FFL_RESOURCE_TYPE_MAX; i++)

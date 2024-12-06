@@ -128,7 +128,7 @@ namespace FFLSharp.VeldridRenderer
         /// </summary>
         /// <param name="buffer">Attribute buffer</param>
         /// <returns>Whether or not you can use this attribute.</returns>
-        public unsafe static bool IsUsable(this FFLAttributeBuffer buffer)
+        public static unsafe bool IsUsable(this FFLAttributeBuffer buffer)
         {
             return buffer.ptr != null && buffer.size > 0
                 && buffer.stride > 0; // NOTE: Some buffers (color) have a stride of 0 but size of 4

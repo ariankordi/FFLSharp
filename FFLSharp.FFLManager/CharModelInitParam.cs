@@ -36,7 +36,7 @@ namespace FFLSharp
             FFLResourceType? resourceType = null)
         {
             // Create FFLCharModelDesc instance with: resolution, modelFlag, resourceType.
-            ModelDesc = new()
+            ModelDesc = new FFLCharModelDesc()
             {
                 resolution = resolution ?? FFLManager.TextureResolution, // Default is static in FFLManager.
                 modelFlag = (uint)(modelFlag ?? FFLModelFlag.FFL_MODEL_FLAG_NORMAL),

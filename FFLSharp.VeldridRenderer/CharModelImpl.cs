@@ -10,14 +10,14 @@ namespace FFLSharp.VeldridRenderer
 {
     public class CharModelImpl : IDisposable
     {
-        private readonly GraphicsDevice _graphicsDevice; // Passed to DrawParamRenderer
-        private readonly ICharModelResource _resourceManager;
-        private readonly TextureManager _textureManager;
-        private readonly ResourceFactory _factory; // Used for making faceline/mask textures.
+        private GraphicsDevice _graphicsDevice; // Passed to DrawParamRenderer
+        private ICharModelResource _resourceManager;
+        private TextureManager _textureManager;
+        private ResourceFactory _factory; // Used for making faceline/mask textures.
 
         // Corresponding to DrawOpa/DrawXlu lists.
-        private readonly Dictionary<FFLModulateType, DrawParamGpuHandler> _opaParams = new();
-        private readonly Dictionary<FFLModulateType, DrawParamGpuHandler> _xluParams = new();
+        private readonly Dictionary<FFLModulateType, DrawParamGpuHandler> _opaParams = new Dictionary<FFLModulateType, DrawParamGpuHandler>();
+        private readonly Dictionary<FFLModulateType, DrawParamGpuHandler> _xluParams = new Dictionary<FFLModulateType, DrawParamGpuHandler>();
 
         // Render textures that need to be initialized before the model is drawn:
         // (Usually instantiated in FFLInitCharModelGPUStep, which is skipped here.)
@@ -25,22 +25,28 @@ namespace FFLSharp.VeldridRenderer
         // Faceline texture and framebuffer.
         private Texture FacelineTexture;
         private Framebuffer _facelineFramebuffer;
-        private readonly List<DrawParamGpuHandler> _tmpParams = new(); // Temporary DrawParamRenderer instances for texture drawing.
+        private readonly List<DrawParamGpuHandler> _tmpParams = new List<DrawParamGpuHandler>(); // Temporary DrawParamRenderer instances for texture drawing.
         // Mask textures and framebuffers, one for each expression.
         private readonly Texture[] MaskTextures = new Texture[(int)FFLExpression.FFL_EXPRESSION_MAX];
         private readonly Framebuffer[] _maskFramebuffers = new Framebuffer[(int)FFLExpression.FFL_EXPRESSION_MAX];
         // ^^ Not all of these will be used or allocated to!
         */
-        private readonly CharModelTexturesRenderer _modelTex;
+        private CharModelTexturesRenderer _modelTex;
 
         // Current expression, controls which mask is active.
         public FFLExpression CurrentExpression { get; private set; } = FFLExpression.FFL_EXPRESSION_NORMAL;
 
         // CharModel field used for FFL calls such as FFLSetExpression.
-        unsafe private readonly FFLCharModel* _pCharModel;
+        unsafe private FFLCharModel* _pCharModel;
 
         public CharModelImpl(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
             TextureManager textureManager, ResourceFactory factory, /*CommandList commandList,*/ ref FFLCharModel charModel)
+        {
+            Initialize(graphicsDevice, resourceManager, textureManager, factory, ref charModel);
+        }
+
+        public void Initialize(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+            TextureManager textureManager, ResourceFactory factory, ref FFLCharModel charModel)
         {
             _graphicsDevice = graphicsDevice;
             _resourceManager = resourceManager;
@@ -50,12 +56,16 @@ namespace FFLSharp.VeldridRenderer
 
             unsafe
             {
-                _pCharModel = (FFLCharModel*)Unsafe.AsPointer(ref charModel);
-                // Also ensure that this CharModel has been set up.
-                FFLiCharModel* pModel = (FFLiCharModel*)Unsafe.AsPointer(ref charModel);
-                Debug.Assert(pModel->charModelDesc.resolution != 0,
-                    "CharModel texResolution is 0, suggesting it is not set up (all zeroes).");
+                fixed (FFLCharModel* pCharModel = &charModel)
+                {
+                    _pCharModel = pCharModel;
 
+                    // Also ensure that this CharModel has been set up.
+                    Debug.Assert(((FFLiCharModel*)pCharModel)->charModelDesc.resolution != 0,
+                        "CharModel texResolution is 0, suggesting it is not set up (all zeroes).");
+                }
+
+                // Set current expression in instance.
                 CurrentExpression = ((FFLiCharModel*)_pCharModel)->expression; // Set current expression in instance.
             }
 

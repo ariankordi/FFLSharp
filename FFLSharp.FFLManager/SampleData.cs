@@ -49,7 +49,7 @@ namespace FFLSharp
         /// <summary>
         /// List of all of the sample data in this class.
         /// </summary>
-        public static readonly List<byte[]> StoreDataSampleList = new()
+        public static readonly List<byte[]> StoreDataSampleList = new List<byte[]>()
         {
             JasmineChlora, BroMoleHigh, Lane
         };
