@@ -43,6 +43,53 @@ namespace FFLSharp
             return additionalInfo; // Ready to use. No reference needed.
         }
 
+        public const int NameLengthBytes = 10; // names in CharInfo are always 20 bytes
+                                               // with extra padding makes them 22 for null
+
+
+        public static unsafe string ConvertUtf16PointerToUtf8String(ushort* utf16Pointer, int length)
+        {
+            if (utf16Pointer == null)
+            {
+                throw new ArgumentNullException(nameof(utf16Pointer));
+            }
+
+            if (length <= 0)
+            {
+                throw new ArgumentException("Length must be greater than zero.", nameof(length));
+            }
+
+            // Create a list of bytes for the UTF-16LE data
+            List<byte> utf16Bytes = new List<byte>();
+            for (int i = 0; i < length; i++)
+            {
+                if (utf16Pointer[i] == 0)
+                {
+                    break; // Hit a null terminator, stop processing.
+                }
+                // Process UTF-16LE.
+                utf16Bytes.Add((byte)(utf16Pointer[i] & 0xFF));        // Lower byte
+                utf16Bytes.Add((byte)((utf16Pointer[i] >> 8) & 0xFF)); // Upper byte
+            }
+
+            // Decode UTF-16LE bytes to a .NET string
+            string utf16String = Encoding.Unicode.GetString(utf16Bytes.ToArray());
+
+            // Convert the .NET string to UTF-8
+            return utf16String;
+        }
+
+        public static unsafe string GetName(this FFLCharModel charModel)
+        {
+            ushort* pName = ((FFLiCharModel*)&charModel)->charInfo.name;
+            return ConvertUtf16PointerToUtf8String(pName, NameLengthBytes);
+        }
+        public static unsafe string GetCreatorName(this FFLCharModel charModel)
+        {
+            ushort* pName = ((FFLiCharModel*)&charModel)->charInfo.creatorName;
+            return ConvertUtf16PointerToUtf8String(pName, NameLengthBytes);
+        }
+
         /// <summary>
         /// Get FFLPartsTransform instance from a CharModel.
         /// This structure gives you rotate and translate vectors

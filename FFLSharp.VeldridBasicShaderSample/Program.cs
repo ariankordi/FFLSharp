@@ -74,18 +74,23 @@ namespace FFLSharp.VeldridBasicShaderSample
             InstantiateFFLAndHelpers(_graphicsDevice); // also initializes charmodel
             //_commandList.PopDebugGroup();
 
-            // sample miis
+            // List of sample data to cycle through.
             List<byte[]> storeDataList = SampleData.StoreDataSampleList;
 
             /*
             FFLManager.CreateCharModelFromStoreData(ref charModel,
                 storeDataList.First(), _textureManager); // first sample
             */
-            FFLCharModel charModel = FFLManager.CreateCharModel(new CharModelInitParam(
+
+            // Define initialization parameters for the first CharModel.
+            CharModelInitParam initParam = new CharModelInitParam(
                 data: storeDataList.First(),
                 expressionFlag: CharModelInitParam.MakeExpressionFlag(FFLExpression.FFL_EXPRESSION_NORMAL,
                                                                       FFLExpression.FFL_EXPRESSION_BLINK)
-            ), _textureManager);
+            );
+            /*
+            FFLCharModel charModel = FFLManager.CreateCharModel(param);
+            */
 
             _resourceManager = new CharModelResource(_graphicsDevice);
 
@@ -102,8 +107,10 @@ namespace FFLSharp.VeldridBasicShaderSample
                 // ^^ From nn::mii::VariableIconBody::StoreCameraMatrix but modified to be 1x scale.
             );
 
-            CharModelImpl charModelGpuBuffer = new CharModelImpl(_graphicsDevice, _resourceManager,
-                _textureManager, factory, /*_commandList,*/ ref charModel);
+            CharModelImpl charModelRenderer = new CharModelImpl(_graphicsDevice, _resourceManager,
+                _textureManager, factory, initParam);
+
+            Console.WriteLine($"Initialized with model: {charModelRenderer.CharModel.GetName()}");
 
             Stopwatch stopwatchBlink = new Stopwatch();
             stopwatchBlink.Start();
@@ -115,7 +122,7 @@ namespace FFLSharp.VeldridBasicShaderSample
             float rotationSpeed = 1.0f; // Speed of rotation in radians per second.
             float rotationAngle = 0.0f; // Initial rotation angle.
 
-            FFLExpression initialExpression = charModelGpuBuffer.CurrentExpression;
+            FFLExpression initialExpression = charModelRenderer.CurrentExpression;
             bool isBlinking = false; // Will be modified by UpdateCharModelBlink.
 
 
@@ -161,25 +168,26 @@ namespace FFLSharp.VeldridBasicShaderSample
                         currentStoreDataIndex = 0;
 
                     // Create a new model from the next instance in the list
-                    charModel = FFLManager.CreateCharModel(new CharModelInitParam(
+                    charModelRenderer?.Dispose();
+                    charModelRenderer = new CharModelImpl(_graphicsDevice, _resourceManager,
+                        _textureManager, factory, new CharModelInitParam(
                         data: storeDataList[currentStoreDataIndex],
                         expressionFlag: CharModelInitParam.MakeExpressionFlag(
                                         FFLExpression.FFL_EXPRESSION_NORMAL,
-                                        FFLExpression.FFL_EXPRESSION_BLINK)), _textureManager);
+                                        FFLExpression.FFL_EXPRESSION_BLINK)));
 
-                    charModelGpuBuffer?.Dispose();
-                    charModelGpuBuffer = new CharModelImpl(_graphicsDevice, _resourceManager,
-                        _textureManager, factory, ref charModel);
+                    // Print the name of this CharModel.
+                    Console.WriteLine($"Switched to model: {charModelRenderer.CharModel.GetName()}");
 
                     // Reset the rotation angle for the next cycle
                     rotationAngle = 0.0f;
                 }
 
-                UpdateCharModelBlink(ref isBlinking, stopwatchBlink, ref charModelGpuBuffer, initialExpression);
+                UpdateCharModelBlink(ref isBlinking, stopwatchBlink, ref charModelRenderer, initialExpression);
 
                 // Update view uniforms and draw the CharModel.
-                charModelGpuBuffer.UpdateViewUniforms(modelMatrix, viewMatrix, projectionMatrix);
-                charModelGpuBuffer.Draw(_commandList);
+                charModelRenderer.UpdateViewUniforms(modelMatrix, viewMatrix, projectionMatrix);
+                charModelRenderer.Draw(_commandList);
 
                 // End() must be called before commands can be submitted for execution.
                 _commandList.End();
@@ -192,7 +200,7 @@ namespace FFLSharp.VeldridBasicShaderSample
 
             #region Cleanup
             // Window is exited, dispose resources in this scope.
-            charModelGpuBuffer?.Dispose();
+            charModelRenderer?.Dispose();
 
             // -> Dispose();
             #endregion

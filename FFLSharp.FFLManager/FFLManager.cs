@@ -41,12 +41,12 @@ namespace FFLSharp
         private const uint _resourceHeaderDefaultSize = 18944; // sizeof(FFLiResourceHeaderDefaultData)
 
         /// <summary>
-        /// Calls FFLInitCharModelCPUStep on an existing CharModel instance, loading in shapes.
+        /// Calls FFLInitCharModelCPUStep on an existing CharModel instance, initializing it.
         /// </summary>
         /// <param name="charModel">FFLCharModel instance to be created before calling this.</param>
         /// <param name="pStoreDataBuffer">FFLStoreData representing the CharModel's data.</param>
         /// <param name="pCallback">Pointer to your FFLTextureCallback instance. If this is null, you need to use FFLSetTextureCallback to set a global callback.</param>
-        public static unsafe void CreateCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, FFLTextureCallback* pCallback = null)
+        public static unsafe void InitCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, FFLTextureCallback* pCallback = null)
         {
             FFLCharModelSource modelSource;
             fixed (byte* pBuffer = pStoreDataBuffer)
@@ -102,12 +102,12 @@ namespace FFLSharp
         /// <summary>
         /// Overload to initialize using an ITextureManager instead of an FFLTextureCallback pointer.
         /// </summary>
-        public static unsafe void CreateCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, ITextureManager textureManager)
+        public static unsafe void InitCharModelFromStoreData(ref FFLCharModel charModel, byte[] pStoreDataBuffer, ITextureManager textureManager)
         {
             FFLTextureCallback* pCallback;
             pCallback = textureManager.GetTextureCallback();
 
-            CreateCharModelFromStoreData(ref charModel, pStoreDataBuffer, pCallback);
+            InitCharModelFromStoreData(ref charModel, pStoreDataBuffer, pCallback);
         }
 
         /// <summary>

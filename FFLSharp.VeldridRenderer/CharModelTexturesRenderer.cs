@@ -11,6 +11,10 @@ using Veldrid;
 
 namespace FFLSharp.VeldridRenderer
 {
+    /// <summary>
+    /// Handles creating and rendering faceline and mask textures.
+    /// Maintains ownership of the textures, releases the framebuffers when finished.
+    /// </summary>
     class CharModelTexturesRenderer : IDisposable
     {
         private readonly GraphicsDevice _graphicsDevice; // Passed to DrawParamRenderer
@@ -19,49 +23,58 @@ namespace FFLSharp.VeldridRenderer
 
         private readonly ResourceFactory _factory; // Used for creating faceline/mask textures.
 
-        // Faceline texture and framebuffer.
+        // Faceline and mask textures.
         public Texture? FacelineTexture;
-        private readonly List<DrawParamGpuHandler> _tmpParams = new List<DrawParamGpuHandler>(); // Temporary DrawParamRenderer instances for texture drawing.
-        // Mask textures and framebuffers, one for each expression.
+        // There is one mask texture for each expression.
         public readonly Texture[] MaskTextures = new Texture[(int)FFLExpression.FFL_EXPRESSION_MAX];
+
+        // Temporary DrawParamRenderer instances for texture drawing.
+        private readonly List<DrawParamGpuHandler> _tmpParams = new List<DrawParamGpuHandler>();
 
         // Framebuffers are disposed after drawing is finished.
         private readonly Framebuffer[] _maskFramebuffers = new Framebuffer[(int)FFLExpression.FFL_EXPRESSION_MAX];
         // ^^ Not all of these will be used or allocated to.
-        private Framebuffer? _facelineFramebuffer;
+        private Framebuffer? _facelineFramebuffer; // Not all CharModels require a faceline texture.
 
-        // CharModel field used for FFL calls such as FFLSetExpression.
-        unsafe private readonly FFLCharModel* _pCharModel;
+        // FFLiCharModel instance casted from FFLCharModel.
+        unsafe private readonly FFLiCharModel* _pCharModel;
+        // ^^ Accessed: texture resolution, active masks,
 
-        public CharModelTexturesRenderer(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+        public unsafe CharModelTexturesRenderer(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
             TextureManager textureManager, ResourceFactory factory, ref FFLCharModel charModel)
         {
             _graphicsDevice = graphicsDevice;
             _resourceManager = resourceManager;
             _textureManager = textureManager;
             _factory = factory; // Will also create and submit a new CommandList.
-            Debug.Assert(_resourceManager.SwapchainTexFormat != null); // ResourceManager needs to be instantiated
 
-            unsafe
+            // Make sure that ResourceManager is instantiated with this:
+            Debug.Assert(_resourceManager.SwapchainTexFormat != null);
+
+            // Set _pCharModel by casting from FFLCharModel.
+            fixed (FFLCharModel* pCharModel = &charModel)
             {
-                _pCharModel = (FFLCharModel*)Unsafe.AsPointer(ref charModel);
+                _pCharModel = (FFLiCharModel*)pCharModel;
             }
 
             // Create and render mask and faceline textures.
-            CreateRenderTextures(ref charModel, _resourceManager.SwapchainTexFormat.Value);
+            CreateRenderTextures(_pCharModel, _resourceManager.SwapchainTexFormat.Value);
 
-            // NOTE: LEAK CASE:
-            // (basicallly bc we are ignoring ffl requests to delete textures, we NEED to initialize charmodel textures always
+            // Begin drawing to faceline and mask textures.
 
             // Use a new CommandList for this:
             CommandList commandList = _factory.CreateCommandList();
             commandList.Begin();
             commandList.PushDebugGroup("Render Mask and Faceline Textures");
-            DrawRenderTextures(ref charModel, commandList, _tmpParams);
+
+            // Below will bind framebuffers and draw to each texture.
+            DrawRenderTextures(_pCharModel, commandList, _tmpParams);
+
             commandList.PopDebugGroup();
             commandList.End();
             _graphicsDevice.SubmitCommands(commandList); // Submit command list.
-            commandList.Dispose(); // Not needed anymore
+            commandList.Dispose(); // Dispose of the CommandList.
+
             DisposeRenderTexturesTempResources();
         }
 
@@ -70,10 +83,8 @@ namespace FFLSharp.VeldridRenderer
         /// </summary>
         /// <param name="textureResolution">(uint)FFLiCharModel.charModelDesc.resolution</param>
         /// <param name="pixelFormat">Desired pixel format for the render textures, needs transparency.</param>
-        private unsafe void CreateRenderTextures(ref FFLCharModel charModel, PixelFormat pixelFormat)
+        private unsafe void CreateRenderTextures(FFLiCharModel* pModel, PixelFormat pixelFormat)
         {
-            // Need to get texture resolution and active masks from FFLiCharModel
-            FFLiCharModel* pModel = (FFLiCharModel*)Unsafe.AsPointer(ref charModel);
             // There is only one faceline texture and framebuffer.
             // Separate the actual resolution from the mipmap enable mask (which is probably never enabled but eh)
             uint textureResolution = (uint)(pModel->charModelDesc.resolution & FFLResolution.FFL_RESOLUTION_MASK);
@@ -111,21 +122,11 @@ namespace FFLSharp.VeldridRenderer
                     new FramebufferDescription(depthTarget: null, colorTargets: MaskTextures[i]));
             }
 
-            /*
-            int expression = (int)pModel->expression;
-            FFLDrawParam* pMaskDrawParam = FFL.GetDrawParamXluMask((FFLCharModel*)Unsafe.AsPointer(ref charModel)); // usually returned as const
-            var maskTextureHandle = _textureManager.AddTextureToMap(MaskTextures[expression]);
-            pMaskDrawParam->modulateParam.pTexture2D = (void*)maskTextureHandle;
-            */
-
             // Framebuffers are ready to bind and textures are ready to use.
         }
 
-        private unsafe void DrawRenderTextures(ref FFLCharModel charModel, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+        private unsafe void DrawRenderTextures(FFLiCharModel* pModel, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
         {
-            // Need to access fields from FFLiCharModel.
-            FFLiCharModel* pModel = (FFLiCharModel*)Unsafe.AsPointer(ref charModel);
-
             FFLiTextureTempObject* pTmpObject = pModel->pTextureTempObject;
 
             // Draw into the faceline texture if it is meant to be rendered.
@@ -165,13 +166,13 @@ namespace FFLSharp.VeldridRenderer
             }
             _tmpParams.Clear(); // Clear all DrawParams from the list.
             // Call FFL methods to delete DrawParams.
-            FFLiCharModel* pModel = (FFLiCharModel*)_pCharModel;
+
             if (_facelineFramebuffer != null)
-                FFL.iDeleteTempObjectFacelineTexture(&pModel->pTextureTempObject->facelineTexture,
-                    &pModel->charInfo, pModel->charModelDesc.resourceType);
-            FFL.iDeleteTempObjectMaskTextures(&pModel->pTextureTempObject->maskTextures,
-                pModel->charModelDesc.allExpressionFlag, pModel->charModelDesc.resourceType);
-            FFL.iDeleteTextureTempObject(pModel);
+                FFL.iDeleteTempObjectFacelineTexture(&_pCharModel->pTextureTempObject->facelineTexture,
+                    &_pCharModel->charInfo, _pCharModel->charModelDesc.resourceType);
+            FFL.iDeleteTempObjectMaskTextures(&_pCharModel->pTextureTempObject->maskTextures,
+                _pCharModel->charModelDesc.allExpressionFlag, _pCharModel->charModelDesc.resourceType);
+            FFL.iDeleteTextureTempObject(_pCharModel);
         }
 
         /// <summary>

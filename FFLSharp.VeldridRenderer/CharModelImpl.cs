@@ -36,12 +36,22 @@ namespace FFLSharp.VeldridRenderer
         // Current expression, controls which mask is active.
         public FFLExpression CurrentExpression { get; private set; } = FFLExpression.FFL_EXPRESSION_NORMAL;
 
-        // CharModel field used for FFL calls such as FFLSetExpression.
+        public FFLCharModel CharModel { get; private set; }
+
+        // CharModel pointer used for FFL calls such as FFLSetExpression.
         unsafe private FFLCharModel* _pCharModel;
 
         public CharModelImpl(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
             TextureManager textureManager, ResourceFactory factory, /*CommandList commandList,*/ ref FFLCharModel charModel)
         {
+            Initialize(graphicsDevice, resourceManager, textureManager, factory, ref charModel);
+        }
+
+        public CharModelImpl(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+            TextureManager textureManager, ResourceFactory factory, CharModelInitParam param)
+        {
+            FFLCharModel charModel = FFLManager.CreateCharModel(param, textureManager);
+            CharModel = charModel;
             Initialize(graphicsDevice, resourceManager, textureManager, factory, ref charModel);
         }
 
@@ -52,8 +62,8 @@ namespace FFLSharp.VeldridRenderer
             _resourceManager = resourceManager;
             _textureManager = textureManager;
             _factory = factory; // Will also create and submit a new CommandList.
-            Debug.Assert(_resourceManager.SwapchainTexFormat != null); // ResourceManager needs to be instantiated
 
+            CharModel = charModel; // Set instance of CharModel.
             unsafe
             {
                 fixed (FFLCharModel* pCharModel = &charModel)
@@ -68,6 +78,10 @@ namespace FFLSharp.VeldridRenderer
                 // Set current expression in instance.
                 CurrentExpression = ((FFLiCharModel*)_pCharModel)->expression; // Set current expression in instance.
             }
+
+            // NOTE: LEAK CASE:
+            // because we are ignoring ffl requests to delete textures...
+            // ... we NEED to initialize charmodel textures always
 
             // Create and render mask and faceline textures.
             //CreateRenderTextures(ref charModel, _resourceManager.SwapchainTexFormat.Value);
