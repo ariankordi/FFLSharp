@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FFLSharp.Interop;
@@ -314,7 +316,7 @@ namespace FFLSharp
             set
             {
                 // Set bool as byte value.
-                FFL.SetTextureFlipY(value ? (byte)0 : (byte)1);
+                FFL.SetTextureFlipY(value ? (byte)1 : (byte)0);
             }
         }
 
@@ -329,7 +331,7 @@ namespace FFLSharp
             set
             {
                 // Set bool as byte value.
-                FFL.SetTextureFlipY(value ? (byte)0 : (byte)1); _normalIsSnorm8_8_8_8 = value;
+                FFL.SetNormalIsSnorm8_8_8_8(value ? (byte)1 : (byte)0); _normalIsSnorm8_8_8_8 = value;
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using FFLSharp.Interop;
+using System;
 
 namespace FFLSharp
 {
@@ -9,7 +10,7 @@ namespace FFLSharp
     {
         public readonly FFLResult Result;
 
-        public FFLResultException(FFLResult result, string message = null, Exception innerException = null)
+        public FFLResultException(FFLResult result, string? message = null, Exception? innerException = null)
             : base(message ?? $"From FFLResult: {result}", innerException)
         {
             Result = result;

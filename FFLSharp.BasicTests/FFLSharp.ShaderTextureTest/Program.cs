@@ -229,7 +229,7 @@ namespace FFLSharp.ShaderTextureTest
             // Create a render target texture with the swapchain format.
             FacelineTexture = factory.CreateTexture(
                 TextureDescription.Texture2D(
-                    textureResolutionHalf, textureResolution, 1, 1, // Width, Height, MipLevels, SampleCount
+                    textureResolutionHalf, textureResolution, 1, 1, // Width, Height, MipLevels, ArrayLayers
                     swapchainFormat,                                   // Use the same format as the swapchain
                     TextureUsage.RenderTarget | TextureUsage.Sampled));  // Enable rendering to and sampling from it
 
@@ -240,7 +240,7 @@ namespace FFLSharp.ShaderTextureTest
 
             MaskTextures[expression] = factory.CreateTexture(
                 TextureDescription.Texture2D(
-                    textureResolution, textureResolution, 1, 1,    // Width, Height, MipLevels, SampleCount
+                    textureResolution, textureResolution, 1, 1,    // Width, Height, MipLevels, ArrayLayers
                     swapchainFormat,                                  // Use the same format as the swapchain
                     TextureUsage.RenderTarget | TextureUsage.Sampled)); // Enable rendering to and sampling from it
             _maskFramebuffers[expression] = factory.CreateFramebuffer(

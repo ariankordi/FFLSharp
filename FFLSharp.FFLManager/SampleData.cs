@@ -1,4 +1,5 @@
 ﻿using FFLSharp.Interop; // For FFL.FFL_MIIDATA_PACKET_SIZE
+using System.Collections.Generic;
 
 namespace FFLSharp
 {

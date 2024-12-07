@@ -1,4 +1,6 @@
 ﻿using FFLSharp.Interop;
+using System;
+using System.Collections.Generic;
 using System.Text; // UTF-16LE -> UTF-8 conversion
 
 namespace FFLSharp

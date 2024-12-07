@@ -6,6 +6,9 @@ using System.Diagnostics;
 
 using FFLSharp.Interop;
 using FFLSharp.VeldridRenderer;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FFLSharp.VeldridBasicShaderSample
 {
