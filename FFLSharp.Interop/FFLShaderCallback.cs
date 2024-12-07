@@ -1,15 +1,18 @@
-namespace FFLSharp.Interop;
+using System;
 
-public unsafe partial struct FFLShaderCallback
+namespace FFLSharp.Interop
 {
-    public void* pObj;
+    public unsafe partial struct FFLShaderCallback
+    {
+        public void* pObj;
 
-    [NativeTypeName("void (*)(void *, bool, FFLRIOCompareFunc, f32)")]
-    public delegate* unmanaged[Cdecl]<void*, byte, uint, float, void> pApplyAlphaTestFunc;
+        [NativeTypeName("void (*)(void *, bool, FFLRIOCompareFunc, f32)")]
+        public IntPtr pApplyAlphaTestFunc;
 
-    [NativeTypeName("void (*)(void *, const FFLDrawParam *)")]
-    public delegate* unmanaged[Cdecl]<void*, FFLDrawParam*, void> pDrawFunc;
+        [NativeTypeName("void (*)(void *, const FFLDrawParam *)")]
+        public IntPtr pDrawFunc;
 
-    [NativeTypeName("void (*)(void *, const FFLRIOBaseMtx44f *)")]
-    public delegate* unmanaged[Cdecl]<void*, FFLRIOBaseMtx44f*, void> pSetMatrixFunc;
+        [NativeTypeName("void (*)(void *, const FFLRIOBaseMtx44f *)")]
+        public IntPtr pSetMatrixFunc;
+    }
 }

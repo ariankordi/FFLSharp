@@ -1,8 +1,9 @@
-namespace FFLSharp.Interop;
-
-public enum FFLiTextureFormat
+namespace FFLSharp.Interop
 {
-    FFLI_TEXTURE_FORMAT_R8 = 0,
-    FFLI_TEXTURE_FORMAT_RG8 = 1,
-    FFLI_TEXTURE_FORMAT_RGBA8 = 2,
+    public enum FFLiTextureFormat
+    {
+        FFLI_TEXTURE_FORMAT_R8 = 0,
+        FFLI_TEXTURE_FORMAT_RG8 = 1,
+        FFLI_TEXTURE_FORMAT_RGBA8 = 2,
+    }
 }

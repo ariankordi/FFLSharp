@@ -1,29 +1,26 @@
-namespace FFLSharp.Interop;
-
-public partial struct FFLResourceDesc
+namespace FFLSharp.Interop
 {
-}
-
-public unsafe partial struct FFLResourceDesc
-{
-    [NativeTypeName("void *[2]")]
-    public _pData_e__FixedBuffer pData;
-
-    [NativeTypeName("u32[2]")]
-    public fixed uint size[2];
-
-    public unsafe partial struct _pData_e__FixedBuffer
+    public unsafe partial struct FFLResourceDesc
     {
-        public void* e0;
-        public void* e1;
+        [NativeTypeName("void *[2]")]
+        public _pData_e__FixedBuffer pData;
 
-        public ref void* this[int index]
+        [NativeTypeName("u32[2]")]
+        public fixed uint size[2];
+
+        public unsafe partial struct _pData_e__FixedBuffer
         {
-            get
+            public void* e0;
+            public void* e1;
+
+            public ref void* this[int index]
             {
-                fixed (void** pThis = &e0)
+                get
                 {
-                    return ref pThis[index];
+                    fixed (void** pThis = &e0)
+                    {
+                        return ref pThis[index];
+                    }
                 }
             }
         }

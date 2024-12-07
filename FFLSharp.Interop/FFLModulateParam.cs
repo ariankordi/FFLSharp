@@ -1,20 +1,21 @@
-namespace FFLSharp.Interop;
-
-public unsafe partial struct FFLModulateParam
+namespace FFLSharp.Interop
 {
-    public FFLModulateMode mode;
+    public unsafe partial struct FFLModulateParam
+    {
+        public FFLModulateMode mode;
 
-    public FFLModulateType type;
+        public FFLModulateType type;
 
-    [NativeTypeName("const FFLColor *")]
-    public FFLColor* pColorR;
+        [NativeTypeName("const FFLColor *")]
+        public FFLColor* pColorR;
 
-    [NativeTypeName("const FFLColor *")]
-    public FFLColor* pColorG;
+        [NativeTypeName("const FFLColor *")]
+        public FFLColor* pColorG;
 
-    [NativeTypeName("const FFLColor *")]
-    public FFLColor* pColorB;
+        [NativeTypeName("const FFLColor *")]
+        public FFLColor* pColorB;
 
-    [NativeTypeName("const FFLTexture *")]
-    public void* pTexture2D;
+        [NativeTypeName("const FFLTexture *")]
+        public void* pTexture2D;
+    }
 }

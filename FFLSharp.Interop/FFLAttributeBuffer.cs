@@ -1,12 +1,13 @@
-namespace FFLSharp.Interop;
-
-public unsafe partial struct FFLAttributeBuffer
+namespace FFLSharp.Interop
 {
-    [NativeTypeName("u32")]
-    public uint size;
+    public unsafe partial struct FFLAttributeBuffer
+    {
+        [NativeTypeName("u32")]
+        public uint size;
 
-    [NativeTypeName("u32")]
-    public uint stride;
+        [NativeTypeName("u32")]
+        public uint stride;
 
-    public void* ptr;
+        public void* ptr;
+    }
 }

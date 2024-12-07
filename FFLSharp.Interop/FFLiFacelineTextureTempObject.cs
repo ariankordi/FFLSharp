@@ -1,23 +1,24 @@
-namespace FFLSharp.Interop;
-
-public unsafe partial struct FFLiFacelineTextureTempObject
+namespace FFLSharp.Interop
 {
-    [NativeTypeName("FFLTexture *")]
-    public void* pTextureFaceLine;
+    public unsafe partial struct FFLiFacelineTextureTempObject
+    {
+        [NativeTypeName("FFLTexture *")]
+        public void* pTextureFaceLine;
 
-    public FFLDrawParam drawParamFaceLine;
+        public FFLDrawParam drawParamFaceLine;
 
-    [NativeTypeName("FFLTexture *")]
-    public void* pTextureFaceMake;
+        [NativeTypeName("FFLTexture *")]
+        public void* pTextureFaceMake;
 
-    public FFLDrawParam drawParamFaceMake;
+        public FFLDrawParam drawParamFaceMake;
 
-    [NativeTypeName("FFLTexture *")]
-    public void* pTextureFaceBeard;
+        [NativeTypeName("FFLTexture *")]
+        public void* pTextureFaceBeard;
 
-    public FFLDrawParam drawParamFaceBeard;
+        public FFLDrawParam drawParamFaceBeard;
 
-    public void* _144;
+        public void* _144;
 
-    public void* _148;
+        public void* _148;
+    }
 }

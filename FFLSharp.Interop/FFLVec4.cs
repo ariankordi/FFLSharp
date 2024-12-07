@@ -1,16 +1,17 @@
-namespace FFLSharp.Interop;
-
-public partial struct FFLVec4
+namespace FFLSharp.Interop
 {
-    [NativeTypeName("f32")]
-    public float x;
+    public partial struct FFLVec4
+    {
+        [NativeTypeName("f32")]
+        public float x;
 
-    [NativeTypeName("f32")]
-    public float y;
+        [NativeTypeName("f32")]
+        public float y;
 
-    [NativeTypeName("f32")]
-    public float z;
+        [NativeTypeName("f32")]
+        public float z;
 
-    [NativeTypeName("f32")]
-    public float w;
+        [NativeTypeName("f32")]
+        public float w;
+    }
 }

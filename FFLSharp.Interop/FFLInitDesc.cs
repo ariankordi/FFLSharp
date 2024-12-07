@@ -1,19 +1,16 @@
-namespace FFLSharp.Interop;
-
-public partial struct FFLInitDesc
+namespace FFLSharp.Interop
 {
-}
+    public unsafe partial struct FFLInitDesc
+    {
+        [NativeTypeName("const void *")]
+        public void* _0;
 
-public unsafe partial struct FFLInitDesc
-{
-    [NativeTypeName("const void *")]
-    public void* _0;
+        public void* _4;
 
-    public void* _4;
+        public FFLFontRegion fontRegion;
 
-    public FFLFontRegion fontRegion;
+        public int _c;
 
-    public int _c;
-
-    public int _10;
+        public int _10;
+    }
 }

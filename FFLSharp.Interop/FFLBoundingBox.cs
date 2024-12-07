@@ -1,8 +1,9 @@
-namespace FFLSharp.Interop;
-
-public partial struct FFLBoundingBox
+namespace FFLSharp.Interop
 {
-    public FFLVec3 min;
+    public partial struct FFLBoundingBox
+    {
+        public FFLVec3 min;
 
-    public FFLVec3 max;
+        public FFLVec3 max;
+    }
 }

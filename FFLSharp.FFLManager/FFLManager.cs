@@ -334,5 +334,22 @@ namespace FFLSharp
                 FFL.SetNormalIsSnorm8_8_8_8(value ? (byte)1 : (byte)0); _normalIsSnorm8_8_8_8 = value;
             }
         }
+
+        private static bool _setFrontCullForFlipX = false;
+        /// <summary>
+        /// This value controls whether or not front face culling
+        /// will be used for meshes with flipped X (flipped hair),
+        /// otherwise the index buffer will be adjusted to reverse
+        /// triangle winding. This is set true for Veldrid.
+        /// </summary>
+        public static bool FrontCullForFlipX
+        {
+            get => _setFrontCullForFlipX;
+            set
+            {
+                // Set bool as byte value.
+                FFL.SetFrontCullForFlipX(value ? (byte)1 : (byte)0); _setFrontCullForFlipX = value;
+            }
+        }
     }
 } // namespace FFLSharp

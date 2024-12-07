@@ -1,8 +1,9 @@
-namespace FFLSharp.Interop;
-
-public partial struct FFLiTextureTempObject
+namespace FFLSharp.Interop
 {
-    public FFLiMaskTexturesTempObject maskTextures;
+    public partial struct FFLiTextureTempObject
+    {
+        public FFLiMaskTexturesTempObject maskTextures;
 
-    public FFLiFacelineTextureTempObject facelineTexture;
+        public FFLiFacelineTextureTempObject facelineTexture;
+    }
 }

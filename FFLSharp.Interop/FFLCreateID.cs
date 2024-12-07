@@ -1,38 +1,44 @@
-using System;
 using System.Runtime.InteropServices;
 
-namespace FFLSharp.Interop;
-
-public unsafe partial struct FFLCreateID
+namespace FFLSharp.Interop
 {
-    [NativeTypeName("__AnonymousRecord_FFLCreateID_L14_C5")]
-    public _Anonymous_e__Union Anonymous;
-
-    public Span<byte> data
+    public unsafe partial struct FFLCreateID
     {
-        get
+        [NativeTypeName("__AnonymousRecord_FFLCreateID_L14_C5")]
+        public _Anonymous_e__Union Anonymous;
+
+        public ref byte data
         {
-            return MemoryMarshal.CreateSpan(ref Anonymous.data[0], 10);
+            get
+            {
+                fixed (_Anonymous_e__Union* pField = &Anonymous)
+                {
+                    return ref pField->data[0];
+                }
+            }
         }
-    }
 
-    public Span<ushort> value16
-    {
-        get
+        public ref ushort value16
         {
-            return MemoryMarshal.CreateSpan(ref Anonymous.value16[0], 5);
+            get
+            {
+                fixed (_Anonymous_e__Union* pField = &Anonymous)
+                {
+                    return ref pField->value16[0];
+                }
+            }
         }
-    }
 
-    [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct _Anonymous_e__Union
-    {
-        [FieldOffset(0)]
-        [NativeTypeName("u8[10]")]
-        public fixed byte data[10];
+        [StructLayout(LayoutKind.Explicit)]
+        public unsafe partial struct _Anonymous_e__Union
+        {
+            [FieldOffset(0)]
+            [NativeTypeName("u8[10]")]
+            public fixed byte data[10];
 
-        [FieldOffset(0)]
-        [NativeTypeName("u16[5]")]
-        public fixed ushort value16[5];
+            [FieldOffset(0)]
+            [NativeTypeName("u16[5]")]
+            public fixed ushort value16[5];
+        }
     }
 }

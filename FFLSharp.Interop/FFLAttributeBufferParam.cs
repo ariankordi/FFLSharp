@@ -1,29 +1,28 @@
-using System;
-using System.Runtime.InteropServices;
-
-namespace FFLSharp.Interop;
-
-public partial struct FFLAttributeBufferParam
+namespace FFLSharp.Interop
 {
-    [NativeTypeName("FFLAttributeBuffer[5]")]
-    public _attributeBuffers_e__FixedBuffer attributeBuffers;
-
-    public partial struct _attributeBuffers_e__FixedBuffer
+    public partial struct FFLAttributeBufferParam
     {
-        public FFLAttributeBuffer e0;
-        public FFLAttributeBuffer e1;
-        public FFLAttributeBuffer e2;
-        public FFLAttributeBuffer e3;
-        public FFLAttributeBuffer e4;
+        [NativeTypeName("FFLAttributeBuffer[5]")]
+        public _attributeBuffers_e__FixedBuffer attributeBuffers;
 
-        public ref FFLAttributeBuffer this[int index]
+        public partial struct _attributeBuffers_e__FixedBuffer
         {
-            get
+            public FFLAttributeBuffer e0;
+            public FFLAttributeBuffer e1;
+            public FFLAttributeBuffer e2;
+            public FFLAttributeBuffer e3;
+            public FFLAttributeBuffer e4;
+
+            public unsafe ref FFLAttributeBuffer this[int index]
             {
-                return ref AsSpan()[index];
+                get
+                {
+                    fixed (FFLAttributeBuffer* pThis = &e0)
+                    {
+                        return ref pThis[index];
+                    }
+                }
             }
         }
-
-        public Span<FFLAttributeBuffer> AsSpan() => MemoryMarshal.CreateSpan(ref e0, 5);
     }
 }

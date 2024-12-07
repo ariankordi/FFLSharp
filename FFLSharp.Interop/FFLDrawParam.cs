@@ -1,16 +1,13 @@
-namespace FFLSharp.Interop;
-
-public partial struct FFLDrawParam
+namespace FFLSharp.Interop
 {
-    public FFLAttributeBufferParam attributeBufferParam;
+    public partial struct FFLDrawParam
+    {
+        public FFLAttributeBufferParam attributeBufferParam;
 
-    public FFLModulateParam modulateParam;
+        public FFLModulateParam modulateParam;
 
-    public FFLCullMode cullMode;
+        public FFLCullMode cullMode;
 
-    public FFLPrimitiveParam primitiveParam;
-}
-
-public partial struct FFLDrawParam
-{
+        public FFLPrimitiveParam primitiveParam;
+    }
 }
