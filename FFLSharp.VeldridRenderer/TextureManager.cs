@@ -1,4 +1,4 @@
-﻿using FFLSharp.Interop;
+using FFLSharp.Interop;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;

@@ -1,4 +1,4 @@
-﻿using FFLSharp.Interop;
+using FFLSharp.Interop;
 using System; // FFLTextureCallback
 
 namespace FFLSharp

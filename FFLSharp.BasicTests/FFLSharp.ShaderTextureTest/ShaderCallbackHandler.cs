@@ -1,4 +1,4 @@
-﻿using FFLSharp.Interop;
+using FFLSharp.Interop;
 using FFLSharp.TextureTest;
 using System;
 using System.Collections.Concurrent;

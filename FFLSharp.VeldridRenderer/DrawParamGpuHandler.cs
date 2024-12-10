@@ -1,4 +1,4 @@
-﻿using FFLSharp.Interop;
+using FFLSharp.Interop;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Diagnostics; // for assert

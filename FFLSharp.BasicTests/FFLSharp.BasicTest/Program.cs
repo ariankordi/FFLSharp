@@ -1,4 +1,4 @@
-﻿using FFLSharp.Interop;
+using FFLSharp.Interop;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
