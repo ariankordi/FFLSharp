@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLiVerifyCharInfoReason
+    [NativeTypeName("unsigned int")]
+    public enum FFLiVerifyCharInfoReason : uint
     {
         FFLI_VERIFY_CHAR_INFO_REASON_OK = 0,
         FFLI_VERIFY_CHAR_INFO_REASON_FACE_TYPE_INVALID = 1,

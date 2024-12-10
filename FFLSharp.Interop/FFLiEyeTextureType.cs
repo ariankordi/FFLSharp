@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLiEyeTextureType
+    [NativeTypeName("unsigned int")]
+    public enum FFLiEyeTextureType : uint
     {
         FFLI_EYE_TEXTURE_TYPE_0 = 0,
         FFLI_EYE_TEXTURE_TYPE_1 = 1,

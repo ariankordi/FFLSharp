@@ -6,14 +6,14 @@ namespace FFLSharp.Interop
     public unsafe partial struct FFLAllExpressionFlag
     {
         [FieldOffset(0)]
-        [NativeTypeName("__AnonymousRecord_FFLExpressionFlag_L17_C5")]
-        public __0_e__Struct _0;
+        [NativeTypeName("__AnonymousRecord_FFLExpressionFlag_L14_C5")]
+        public _flag_e__Struct flag;
 
         [FieldOffset(0)]
         [NativeTypeName("u32[3]")]
         public fixed uint flags[3];
 
-        public partial struct __0_e__Struct
+        public partial struct _flag_e__Struct
         {
             [NativeTypeName("u32")]
             public uint low;

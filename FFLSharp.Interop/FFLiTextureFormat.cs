@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLiTextureFormat
+    [NativeTypeName("unsigned int")]
+    public enum FFLiTextureFormat : uint
     {
         FFLI_TEXTURE_FORMAT_R8 = 0,
         FFLI_TEXTURE_FORMAT_RG8 = 1,

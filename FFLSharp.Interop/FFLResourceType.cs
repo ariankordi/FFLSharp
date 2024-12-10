@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLResourceType
+    [NativeTypeName("unsigned int")]
+    public enum FFLResourceType : uint
     {
         FFL_RESOURCE_TYPE_MIDDLE = 0,
         FFL_RESOURCE_TYPE_HIGH = 1,

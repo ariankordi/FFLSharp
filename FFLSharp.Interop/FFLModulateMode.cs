@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLModulateMode
+    [NativeTypeName("unsigned int")]
+    public enum FFLModulateMode : uint
     {
         FFL_MODULATE_MODE_CONSTANT = 0,
         FFL_MODULATE_MODE_TEXTURE_DIRECT = 1,

@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLExpression
+    [NativeTypeName("unsigned int")]
+    public enum FFLExpression : uint
     {
         FFL_EXPRESSION_NORMAL = 0,
         FFL_EXPRESSION_SMILE = 1,

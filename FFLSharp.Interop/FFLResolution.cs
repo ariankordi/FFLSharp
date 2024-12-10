@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLResolution
+    [NativeTypeName("unsigned int")]
+    public enum FFLResolution : uint
     {
         FFL_RESOLUTION_MASK = 0x3fffffff,
         FFL_RESOLUTION_MIP_MAP_ENABLE_MASK = 1 << 30,

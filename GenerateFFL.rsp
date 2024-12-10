@@ -52,6 +52,7 @@ ffl/include/nn/ffl/FFLGlobal.h
 ffl/include/nn/ffl/FFLInitDesc.h
 ffl/include/nn/ffl/FFLMiddleDB.h
 ffl/include/nn/ffl/FFLMiddleDBType.h
+ffl/include/nn/ffl/FFLModelFlag.h
 ffl/include/nn/ffl/FFLModelType.h
 ffl/include/nn/ffl/FFLModulateParam.h
 ffl/include/nn/ffl/FFLPartsTransform.h

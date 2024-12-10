@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLModelType
+    [NativeTypeName("unsigned int")]
+    public enum FFLModelType : uint
     {
         FFL_MODEL_TYPE_NORMAL = 0,
         FFL_MODEL_TYPE_HAT = 1,

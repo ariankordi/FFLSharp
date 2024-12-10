@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLiShapeType
+    [NativeTypeName("unsigned int")]
+    public enum FFLiShapeType : uint
     {
         FFLI_SHAPE_TYPE_OPA_BEARD = 0,
         FFLI_SHAPE_TYPE_OPA_FACELINE = 1,

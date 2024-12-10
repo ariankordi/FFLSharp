@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLResult
+    [NativeTypeName("unsigned int")]
+    public enum FFLResult : uint
     {
         FFL_RESULT_OK = 0,
         FFL_RESULT_ERROR = 1,

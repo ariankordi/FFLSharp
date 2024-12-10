@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLBirthPlatform
+    [NativeTypeName("unsigned int")]
+    public enum FFLBirthPlatform : uint
     {
         FFL_BIRTH_PLATFORM_WII = 1,
         FFL_BIRTH_PLATFORM_NTR = 2,

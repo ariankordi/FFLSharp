@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLDataSource
+    [NativeTypeName("unsigned int")]
+    public enum FFLDataSource : uint
     {
         FFL_DATA_SOURCE_OFFICIAL = 0,
         FFL_DATA_SOURCE_DEFAULT = 1,

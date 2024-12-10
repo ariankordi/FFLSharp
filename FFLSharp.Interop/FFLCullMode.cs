@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLCullMode
+    [NativeTypeName("unsigned int")]
+    public enum FFLCullMode : uint
     {
         FFL_CULL_MODE_NONE = 0,
         FFL_CULL_MODE_BACK = 1,

@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLAttributeBufferType
+    [NativeTypeName("unsigned int")]
+    public enum FFLAttributeBufferType : uint
     {
         FFL_ATTRIBUTE_BUFFER_TYPE_POSITION = 0,
         FFL_ATTRIBUTE_BUFFER_TYPE_TEXCOORD = 1,

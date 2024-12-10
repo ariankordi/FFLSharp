@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace FFLSharp.Interop
@@ -109,6 +110,9 @@ namespace FFLSharp.Interop
         [DllImport("libffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetAdditionalInfo", ExactSpelling = true)]
         public static extern FFLResult GetAdditionalInfo(FFLAdditionalInfo* pAdditionalInfo, FFLDataSource dataSource, [NativeTypeName("const void *")] void* pBuffer, [NativeTypeName("u16")] ushort index, [NativeTypeName("bool")] byte checkFontRegion);
 
+        [NativeTypeName("#define FFL_EXPRESSION_LIMIT 70")]
+        public const int FFL_EXPRESSION_LIMIT = 70;
+
         [DllImport("libffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLInitResEx", ExactSpelling = true)]
         public static extern FFLResult InitResEx([NativeTypeName("const FFLInitDesc *")] FFLInitDesc* pInitDesc, [NativeTypeName("const FFLResourceDesc *")] FFLResourceDesc* pResDesc);
 
@@ -142,6 +146,9 @@ namespace FFLSharp.Interop
 
         [DllImport("libffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetFrontCullForFlipX", ExactSpelling = true)]
         public static extern void SetFrontCullForFlipX([NativeTypeName("bool")] byte enable);
+
+        [DllImport("libffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetExpressionFlagIndex", ExactSpelling = true)]
+        public static extern void SetExpressionFlagIndex(FFLAllExpressionFlag* ef, [NativeTypeName("u32")] uint index, [NativeTypeName("bool")] byte set);
 
         [DllImport("libffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetMiddleDBBufferSize", ExactSpelling = true)]
         [return: NativeTypeName("u32")]
@@ -196,8 +203,8 @@ namespace FFLSharp.Interop
         [return: NativeTypeName("bool")]
         public static extern byte iIsHomeAuthorID([NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* pAuthorID);
 
-        [NativeTypeName("#define FFLI_AUTHOR_ID_SIZE (sizeof(u64))")]
-        public const ulong FFLI_AUTHOR_ID_SIZE = (8);
+        [NativeTypeName("#define FFLI_AUTHOR_ID_SIZE (int)sizeof(u64)")]
+        public static readonly int FFLI_AUTHOR_ID_SIZE = (int)(sizeof(UIntPtr));
 
         [DllImport("libffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiInitCharModelCPUStep", ExactSpelling = true)]
         public static extern FFLResult iInitCharModelCPUStep(FFLiCharModel* pModel, [NativeTypeName("const FFLCharModelSource *")] FFLCharModelSource* pSource, [NativeTypeName("const FFLCharModelDesc *")] FFLCharModelDesc* pDesc, [NativeTypeName("const FFLTextureCallback *")] FFLTextureCallback* pCallback);

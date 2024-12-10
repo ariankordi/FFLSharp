@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLModulateType
+    [NativeTypeName("unsigned int")]
+    public enum FFLModulateType : uint
     {
         FFL_MODULATE_TYPE_SHAPE_FACELINE = 0,
         FFL_MODULATE_TYPE_SHAPE_BEARD = 1,

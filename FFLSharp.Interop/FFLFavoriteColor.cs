@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLFavoriteColor
+    [NativeTypeName("unsigned int")]
+    public enum FFLFavoriteColor : uint
     {
         FFL_FAVORITE_COLOR_RED = 0,
         FFL_FAVORITE_COLOR_ORANGE = 1,

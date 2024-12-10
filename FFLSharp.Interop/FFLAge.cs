@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLAge
+    [NativeTypeName("unsigned int")]
+    public enum FFLAge : uint
     {
         FFL_AGE_CHILD = 0,
         FFL_AGE_ADULT = 1,

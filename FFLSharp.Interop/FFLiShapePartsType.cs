@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLiShapePartsType
+    [NativeTypeName("unsigned int")]
+    public enum FFLiShapePartsType : uint
     {
         FFLI_SHAPE_PARTS_TYPE_BEARD = 0,
         FFLI_SHAPE_PARTS_TYPE_CAP_1 = 1,

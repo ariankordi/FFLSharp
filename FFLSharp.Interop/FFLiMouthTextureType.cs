@@ -1,6 +1,7 @@
 namespace FFLSharp.Interop
 {
-    public enum FFLiMouthTextureType
+    [NativeTypeName("unsigned int")]
+    public enum FFLiMouthTextureType : uint
     {
         FFLI_MOUTH_TEXTURE_TYPE_0 = 0,
         FFLI_MOUTH_TEXTURE_TYPE_1 = 1,
