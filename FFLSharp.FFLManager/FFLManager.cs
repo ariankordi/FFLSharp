@@ -173,6 +173,14 @@ namespace FFLSharp
 
         private const FFLFontRegion _fontRegion = FFLFontRegion.FFL_FONT_REGION_JP_US_EU; // Default font region used even internally.
 
+        public unsafe static FFLiCharInfo GetRandomCharInfo(FFLGender gender = FFLGender.FFL_GENDER_MAX,
+            FFLAge age = FFLAge.FFL_AGE_MAX, FFLRace race = FFLRace.FFL_RACE_MAX)
+        {
+            FFLiCharInfo charInfo = new FFLiCharInfo();
+            FFL.iGetRandomCharInfo(&charInfo, gender, age, race);
+            return charInfo;
+        }
+
         /// <summary>
         /// Calls FFLInitRes() to initialize FFL and its resource. This is needed in order to do anything else with the library.
         /// </summary>

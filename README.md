@@ -19,11 +19,39 @@ I'm hoping that the Veldrid stuff would help if anyone wanted to use Miis in oth
 **especially if you use my FFL raylib samples to guide you: todo todo I reeeally have to publish these**
 
 ## Building
-For brevity, I'm going to skip the C# portion since it should be easy enough to build. The real challenge is
+For brevity, I'm going to skip the C# portion since it should be easy enough to build - hit run in Visual Studio or `dotnet run` in a project folder. The real challenge is
 * Building libffl.
-* Getting it functional and acquiring the resource file.
+* Acquiring the resource file.
+
+For the moment, you will have to pull the FFL-Testing repo to use its CMakeLists (tested to work on branch renderer-server-prototype, commit blah. If you are following this months in the future and the current version doesn't work, please try that one)
+
+#### libffl building
 
 **TODO TODO NOT DONE!!!!!!!!!! NEEEEEEEEED TO MAKE CMAKE PROJECT!!! if you are lURKING you should hack [the FFL-Testing makefile](https://github.com/ariankordi/FFL-Testing/blob/renderer-server-prototype/Makefile) to build a library tho it neeeds latest rio changes too hh**
+
+<details>
+<summary>
+
+## Questions/Answers
+</summary>
+
+
+### I don’t like C#, why should I care?
+Since this has an implementation of using FFL to draw Miis in a non-C/C++ language, and using a Vulkan-like API (Veldrid), it can be a base to open possibilities for bringing FFL to all sorts of places.
+### Can I use this in Unity?
+Not yet.
+
+It’s totally possible to use everything in this repo to draw Miis in Unity as a managed plugin, and it should work on .NET Standard 2.0 (Unity 2020 and later).
+However, I haven’t made such a plugin yet. Nothing stopping you from doing it though!
+### Can I use on 😹 Unity Wii U? 😹
+Probably not.
+
+The lowest I could get ClangSharp to generate bindings for is C# 7 and .NET Standard 2.0, both of which are far newer than the last major release of Unity Wii U (I think.)
+
+…However, it may be simpler to use FFL in Unity Wii U as a whole since they are both calling to the same GX2 API. Try Abood’s original version of the decomp.
+#### On Switch?
+Maybe! It’s worth a try. You’d have to get the build for libffl working on the NX target, which is cursed as all hell...
+</details>
 
 # Acknowledgements
 * [aboood40091/AboodXD](https://github.com/aboood40091) for the [FFL decompilation and port to RIO](https://github.com/aboood40091/ffl/tree/nsmbu-win-port).

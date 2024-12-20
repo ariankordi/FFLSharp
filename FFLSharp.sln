@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.FFLManager", "FFLS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFLSharp.VeldridRenderer", "FFLSharp.VeldridRenderer\FFLSharp.VeldridRenderer.csproj", "{7497D9B2-1E0C-432E-8B62-C53940652C6C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFLSharp.VeldridCreateTGASample", "FFLSharp.VeldridCreateTGASample\FFLSharp.VeldridCreateTGASample.csproj", "{72BD5ADB-0DE3-4644-931A-6E6D282C6276}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{7497D9B2-1E0C-432E-8B62-C53940652C6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7497D9B2-1E0C-432E-8B62-C53940652C6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7497D9B2-1E0C-432E-8B62-C53940652C6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72BD5ADB-0DE3-4644-931A-6E6D282C6276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72BD5ADB-0DE3-4644-931A-6E6D282C6276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72BD5ADB-0DE3-4644-931A-6E6D282C6276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72BD5ADB-0DE3-4644-931A-6E6D282C6276}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
