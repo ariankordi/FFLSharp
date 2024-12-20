@@ -18,7 +18,7 @@ namespace FFLSharp.VeldridRenderer
     class CharModelTexturesRenderer : IDisposable
     {
         private readonly GraphicsDevice _graphicsDevice; // Passed to DrawParamRenderer
-        private readonly ICharModelResource _resourceManager;
+        private readonly IPipelineProvider _pipelineProvider;
         private readonly TextureManager _textureManager;
 
         private readonly ResourceFactory _factory; // Used for creating faceline/mask textures.
@@ -29,7 +29,7 @@ namespace FFLSharp.VeldridRenderer
         public readonly Texture[] MaskTextures = new Texture[(int)FFLExpression.FFL_EXPRESSION_MAX];
 
         // Temporary DrawParamRenderer instances for texture drawing.
-        private readonly List<DrawParamGpuHandler> _tmpParams = new List<DrawParamGpuHandler>();
+        private readonly List<DrawParamGpuBuffer> _tmpParams = new List<DrawParamGpuBuffer>();
 
         // Framebuffers are disposed after drawing is finished.
         private readonly Framebuffer[] _maskFramebuffers = new Framebuffer[(int)FFLExpression.FFL_EXPRESSION_MAX];
@@ -40,25 +40,22 @@ namespace FFLSharp.VeldridRenderer
         unsafe private readonly FFLiCharModel* _pCharModel;
         // ^^ Accessed: texture resolution, active masks,
 
-        public unsafe CharModelTexturesRenderer(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
-            TextureManager textureManager, ResourceFactory factory, ref FFLCharModel charModel)
+        public unsafe CharModelTexturesRenderer(GraphicsDevice graphicsDevice, IPipelineProvider pipelineProvider,
+            TextureManager textureManager, ResourceFactory factory, FFLCharModel* pCharModel)
         {
             _graphicsDevice = graphicsDevice;
-            _resourceManager = resourceManager;
+            _pipelineProvider = pipelineProvider;
             _textureManager = textureManager;
             _factory = factory; // Will also create and submit a new CommandList.
 
-            // Make sure that ResourceManager is instantiated with this:
-            Debug.Assert(_resourceManager.SwapchainTexFormat != null);
+            // Make sure that the pipeline provider is instantiated with this:
+            Debug.Assert(_pipelineProvider.SwapchainTexFormat != null);
 
             // Set _pCharModel by casting from FFLCharModel.
-            fixed (FFLCharModel* pCharModel = &charModel)
-            {
-                _pCharModel = (FFLiCharModel*)pCharModel;
-            }
+            _pCharModel = (FFLiCharModel*)pCharModel;
 
             // Create and render mask and faceline textures.
-            CreateRenderTextures(_pCharModel, _resourceManager.SwapchainTexFormat.Value);
+            CreateRenderTextures(_pCharModel, _pipelineProvider.SwapchainTexFormat.Value);
 
             // Begin drawing to faceline and mask textures.
 
@@ -95,7 +92,7 @@ namespace FFLSharp.VeldridRenderer
                 uint halfResolution = textureResolution / 2; // Faceline texture width is half
                 FacelineTexture = _factory.CreateTexture(
                     TextureDescription.Texture2D(
-                        halfResolution, textureResolution, 1, 1, // Width, Height, MipLevels, SampleCount
+                        halfResolution, textureResolution, 1, 1, // Width, Height, MipLevels, ArrayLayers
                                                                  // Usually, the pixel format in the faceline/mask pipeline is the swapchain pixel format.
                         pixelFormat,                             // Desired pixel format
                         TextureUsage.RenderTarget | TextureUsage.Sampled)); // Need to render to this
@@ -115,7 +112,7 @@ namespace FFLSharp.VeldridRenderer
                 MaskTextures[i] = _factory.CreateTexture(
                     TextureDescription.Texture2D(
                         // Aspect ratio 1:1
-                        textureResolution, textureResolution, 1, 1, // Width, Height, MipLevels, SampleCount
+                        textureResolution, textureResolution, 1, 1, // Width, Height, MipLevels, ArrayLayers
                         pixelFormat,                                // Desired pixel format
                         TextureUsage.RenderTarget | TextureUsage.Sampled)); // Need to render to this
                 _maskFramebuffers[i] = _factory.CreateFramebuffer(
@@ -125,7 +122,7 @@ namespace FFLSharp.VeldridRenderer
             // Framebuffers are ready to bind and textures are ready to use.
         }
 
-        private unsafe void DrawRenderTextures(FFLiCharModel* pModel, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+        private unsafe void DrawRenderTextures(FFLiCharModel* pModel, CommandList commandList, List<DrawParamGpuBuffer> tmpParams)
         {
             FFLiTextureTempObject* pTmpObject = pModel->pTextureTempObject;
 
@@ -162,6 +159,7 @@ namespace FFLSharp.VeldridRenderer
         {
             foreach (var renderer in _tmpParams)
             {
+                //Console.WriteLine($"deleting tmp mask obj: {renderer.ModulateType}");
                 renderer.Dispose(); // Dispose all temporary instances after submission.
             }
             _tmpParams.Clear(); // Clear all DrawParams from the list.
@@ -181,7 +179,7 @@ namespace FFLSharp.VeldridRenderer
         /// <param name="pTmpObject">FFLiCharModel.pTextureTempObject</param
         /// <param name="facelineColor">FFL.GetFacelineColor(pCharModel->charInfo.parts.facelineColor)</param>
         private unsafe void DrawFacelineParts(Framebuffer framebuffer, FFLiFacelineTextureTempObject* pFaceTmpObject,
-            FFLColor facelineColor, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+            FFLColor facelineColor, CommandList commandList, List<DrawParamGpuBuffer> tmpParams)
         {
             // Prepare CommandList to draw into the faceline texture.
             commandList.SetFramebuffer(framebuffer);
@@ -207,7 +205,7 @@ namespace FFLSharp.VeldridRenderer
         /// <param name="framebuffer">Framebuffer for the current mask.</param>
         /// <param name="pMaskTmpObject">pMaskTmpObject->pRawMaskDrawParam[(int)expression]</param>
         private unsafe void DrawMaskParts(Framebuffer framebuffer, FFLiRawMaskDrawParam* pDrawParam,
-            CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+            CommandList commandList, List<DrawParamGpuBuffer> tmpParams)
         {
             // Prepare CommandList to draw into the current mask texture.
             commandList.SetFramebuffer(framebuffer);
@@ -233,12 +231,13 @@ namespace FFLSharp.VeldridRenderer
             // ^^ Basically FFLiDrawRawMask
         }
 
-        private void DrawFromDrawParamOnce(ref FFLDrawParam param, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+        private unsafe void DrawFromDrawParamOnce(ref FFLDrawParam param, CommandList commandList, List<DrawParamGpuBuffer> tmpParams)
         {
             // Not meant for shapes because no view uniforms are ever set.
             Debug.Assert(param.modulateParam.type > FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MAX - 1);
             // Create and use this DrawParamRenderer once.
-            DrawParamGpuHandler renderer = new DrawParamGpuHandler(_graphicsDevice, _resourceManager, _textureManager, ref param);
+            FFLDrawParam* pDrawParam = (FFLDrawParam*)Unsafe.AsPointer(ref param);
+            DrawParamGpuBuffer renderer = new DrawParamGpuBuffer(_graphicsDevice, _pipelineProvider, _textureManager, pDrawParam);
             // Assuming CommandList is ready for drawing, and doesn't
             // require view uniforms to be set (so, for 2D planes)
             renderer.Draw(commandList);
@@ -250,7 +249,7 @@ namespace FFLSharp.VeldridRenderer
         /// <summary>
         /// This overload additionally will only continue if ptrMustNotBeNull is not null.
         /// </summary>
-        private unsafe void DrawFromDrawParamOnce(ref FFLDrawParam param, void* ptrMustNotBeNull, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+        private unsafe void DrawFromDrawParamOnce(ref FFLDrawParam param, void* ptrMustNotBeNull, CommandList commandList, List<DrawParamGpuBuffer> tmpParams)
         {
             if (ptrMustNotBeNull != null)
                 DrawFromDrawParamOnce(ref param, commandList, tmpParams);
@@ -259,7 +258,7 @@ namespace FFLSharp.VeldridRenderer
         /// <summary>
         /// This overload additionally will only continue if mustNotBeZero is not zero (index count?).
         /// </summary>
-        private unsafe void DrawFromDrawParamOnce(ref FFLDrawParam param, uint mustNotBeZero, CommandList commandList, List<DrawParamGpuHandler> tmpParams)
+        private unsafe void DrawFromDrawParamOnce(ref FFLDrawParam param, uint mustNotBeZero, CommandList commandList, List<DrawParamGpuBuffer> tmpParams)
         {
             if (mustNotBeZero != 0)
                 DrawFromDrawParamOnce(ref param, commandList, tmpParams);

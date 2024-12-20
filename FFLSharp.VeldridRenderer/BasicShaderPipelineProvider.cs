@@ -1,5 +1,8 @@
+using FFLSharp.Interop;
+using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Veldrid;
@@ -8,7 +11,7 @@ using Vulkan;
 
 namespace FFLSharp.VeldridRenderer
 {
-    public class CharModelResource : IDisposable, ICharModelResource
+    public class BasicShaderPipelineProvider : IDisposable, IPipelineProvider, IUniformProvider
     {
         private readonly GraphicsDevice _graphicsDevice;
         private readonly ResourceFactory _factory;
@@ -78,13 +81,13 @@ namespace FFLSharp.VeldridRenderer
         public Sampler SamplerMirror { get; private set; } // Mirored repeat (should be all NPOT textures)
         public Sampler Sampler { get; private set; } // For all other shapes/textures.
 
-        public CharModelResource(GraphicsDevice graphicsDevice)
+        public BasicShaderPipelineProvider(GraphicsDevice graphicsDevice)
         {
             _graphicsDevice = graphicsDevice;
             _factory = graphicsDevice.ResourceFactory;
 
             // Load shaders from ShaderSources class.
-            LoadShaders(ShaderSources.VertexShaderDefault3DCode, ShaderSources.VertexShader2DPlaneCode, ShaderSources.FragmentShaderCode);
+            LoadShaders(BasicShaderSources.VertexShaderDefault3DCode, BasicShaderSources.VertexShader2DPlaneCode, BasicShaderSources.FragmentShaderCode);
             ResourceLayout = CreateResourceLayout();
             CreatePipelines();
             CreateDefaultTextureAndSampler();
@@ -226,7 +229,39 @@ namespace FFLSharp.VeldridRenderer
             // DrawXlu stage pipelines
             GraphicsPipelineDescription xluPipelineDescription = pipelineDescription;
             xluPipelineDescription.DepthStencilState.DepthWriteEnabled = false; // DrawXlu has no depth writing
-            xluPipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend; // Use alpha blending.
+            xluPipelineDescription.BlendState = new BlendStateDescription
+            {
+                BlendFactor = RgbaFloat.Clear,
+                AttachmentStates = new[]
+                    {
+                        new BlendAttachmentDescription
+                        {
+                            BlendEnabled = true,
+                            SourceColorFactor = BlendFactor.SourceAlpha,
+                            DestinationColorFactor = BlendFactor.InverseSourceAlpha,
+                            ColorFunction = BlendFunction.Add,
+                            SourceAlphaFactor = BlendFactor.SourceAlpha,
+                            DestinationAlphaFactor = BlendFactor.One,
+                            AlphaFunction = BlendFunction.Add
+                        }
+                    }
+            };
+
+                //BlendStateDescription.SingleAlphaBlend; // Use alpha blending.
+
+            /*
+    render_state.setBlendEnable(true);
+    render_state.setBlendEquation(rio::Graphics::BLEND_FUNC_ADD);
+    render_state.setBlendFactorSrcRGB(rio::Graphics::BLEND_MODE_SRC_ALPHA);
+    render_state.setBlendFactorDstRGB(rio::Graphics::BLEND_MODE_ONE_MINUS_SRC_ALPHA);
+    render_state.setBlendConstantColor({ 0.0f, 0.0f, 0.0f, 0.0f });
+
+
+    // settings for AFL and also FFL in cemu (closer)
+    render_state.setBlendEquationAlpha(rio::Graphics::BLEND_FUNC_ADD);
+    render_state.setBlendFactorSrcAlpha(rio::Graphics::BLEND_MODE_SRC_ALPHA);
+    render_state.setBlendFactorDstAlpha(rio::Graphics::BLEND_MODE_ONE);
+            */
 
             // Glasses need culling set to none
             GraphicsPipelineDescription glassPipelineDescription = xluPipelineDescription; // Copy from DrawXlu desc.
@@ -316,89 +351,72 @@ namespace FFLSharp.VeldridRenderer
             Sampler.Dispose();
             DefaultTexture.Dispose();
         }
-    }
 
-    /*
-    public Pipeline GetPipeline(PipelineKey key)
-    {
-        if (!_pipelines.TryGetValue(key, out Pipeline pipeline))
+        /// <summary>
+        /// Vertex uniforms used for 3D shaders.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct VertexUniforms
         {
-            pipeline = CreatePipeline(key);
-            _pipelines[key] = pipeline;
+            public Matrix4x4 ModelView;
+            public Matrix4x4 Projection;
         }
 
-        return pipeline;
-    }
-
-    private Pipeline CreatePipeline(PipelineKey key)
-    {
-        var pipelineDescription = new GraphicsPipelineDescription
+        public DeviceBuffer CreateVertexUniformBuffer()
         {
-            BlendState = key.BlendState,
-            DepthStencilState = key.DepthStencilState,
-            RasterizerState = key.RasterizerState,
-            PrimitiveTopology = PrimitiveTopology.TriangleList,
-            ShaderSet = new ShaderSetDescription(
-                vertexLayouts: key.VertexLayouts,
-                shaders: _shaders),
-            ResourceLayouts = new[] { _resourceLayout },
-            Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription,
-        };
-
-        return _factory.CreateGraphicsPipeline(ref pipelineDescription);
-    }
-    */
-
-    /*
-        public struct PipelineKey : IEquatable<PipelineKey>
-        {
-            public BlendStateDescription BlendState;
-            public DepthStencilStateDescription DepthStencilState;
-            public RasterizerStateDescription RasterizerState;
-            public VertexLayoutDescription[] VertexLayouts;
-
-            public bool Equals(PipelineKey other)
-            {
-                // Implement equality comparison based on fields
-                return BlendState.Equals(other.BlendState)
-                    && DepthStencilState.Equals(other.DepthStencilState)
-                    && RasterizerState.Equals(other.RasterizerState)
-                    && VertexLayoutsEquals(VertexLayouts, other.VertexLayouts);
-            }
-
-            public override int GetHashCode()
-            {
-                // Implement hash code calculation based on fields
-                int hashCode = BlendState.GetHashCode();
-                hashCode = (hashCode * 397) ^ DepthStencilState.GetHashCode();
-                hashCode = (hashCode * 397) ^ RasterizerState.GetHashCode();
-                hashCode = (hashCode * 397) ^ VertexLayoutsHashCode(VertexLayouts);
-                return hashCode;
-            }
-
-            private bool VertexLayoutsEquals(VertexLayoutDescription[] a, VertexLayoutDescription[] b)
-            {
-                if (a.Length != b.Length)
-                    return false;
-
-                for (int i = 0; i < a.Length; i++)
-                {
-                    if (!a[i].Equals(b[i]))
-                        return false;
-                }
-
-                return true;
-            }
-
-            private int VertexLayoutsHashCode(VertexLayoutDescription[] layouts)
-            {
-                int hashCode = 0;
-                foreach (var layout in layouts)
-                {
-                    hashCode = (hashCode * 397) ^ layout.GetHashCode();
-                }
-                return hashCode;
-            }
+            return _factory.CreateBuffer(new BufferDescription(
+                (uint)Unsafe.SizeOf<VertexUniforms>(), BufferUsage.UniformBuffer | BufferUsage.Dynamic));
         }
-    */
+
+        /// <summary>
+        /// Fragment uniforms used for the 2D and 3D shader.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct FragmentUniforms
+        {
+            public int ModulateMode;
+            // Padding for alignment.
+            private readonly int _padding1;
+            private readonly int _padding2;
+            private readonly int _padding3;
+            // Directly casted from FFLColor.
+            public RgbaFloat ColorR;
+            public RgbaFloat ColorG;
+            public RgbaFloat ColorB;
+        }
+
+        public DeviceBuffer CreateFragmentUniformBuffer()
+        {
+            return _factory.CreateBuffer(new BufferDescription(
+                (uint)Unsafe.SizeOf<FragmentUniforms>(), BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+        }
+
+        private void UpdateFragmentUniforms(DeviceBuffer uniformBuffer, FFLModulateParam modulateParam)
+        {
+            FragmentUniforms fragmentUniforms = new FragmentUniforms();
+            fragmentUniforms.ModulateMode = (int)modulateParam.mode;
+            // Set constant colors if they exist.
+            unsafe // Dereferencing color pointers.
+            {
+                // Directly cast FFLColor to System.Numerics.Vector4.
+                fragmentUniforms.ColorR = modulateParam.pColorR != null
+                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorR)
+                    : RgbaFloat.Clear;
+                fragmentUniforms.ColorG = modulateParam.pColorG != null
+                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorG)
+                    : RgbaFloat.Clear;
+                fragmentUniforms.ColorB = modulateParam.pColorB != null
+                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorB)
+                    : RgbaFloat.Clear;
+            }
+            // Update fragment uniform buffer.
+            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, ref fragmentUniforms);
+        }
+
+        public void UpdateFragmentUniformBuffer(DeviceBuffer uniformBuffer, FFLModulateParam modulateParam)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

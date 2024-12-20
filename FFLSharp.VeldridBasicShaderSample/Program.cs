@@ -25,7 +25,7 @@ namespace FFLSharp.VeldridBasicShaderSample
         private static TextureManager _textureManager;
 
         // Resource manager including pipelines, layouts, etc.
-        private static CharModelResource _resourceManager;
+        private static BasicShaderPipelineProvider _pipelineProvider;
 
         static void Main(string[] args)
         {
@@ -47,6 +47,7 @@ namespace FFLSharp.VeldridBasicShaderSample
 
             GraphicsBackend backend =
                 //GraphicsBackend.Vulkan;
+                //GraphicsBackend.OpenGL;
                 VeldridStartup.GetPlatformDefaultBackend();
 
             // Create Sdl2Window and GraphicsDevice
@@ -95,7 +96,7 @@ namespace FFLSharp.VeldridBasicShaderSample
             FFLCharModel charModel = FFLManager.CreateCharModel(param);
             */
 
-            _resourceManager = new CharModelResource(_graphicsDevice);
+            _pipelineProvider = new BasicShaderPipelineProvider(_graphicsDevice);
 
             Matrix4x4 modelMatrix = Matrix4x4.Identity;
             // Make projection matrix, calculate the aspect ratio
@@ -110,7 +111,7 @@ namespace FFLSharp.VeldridBasicShaderSample
                 // ^^ From nn::mii::VariableIconBody::StoreCameraMatrix but modified to be 1x scale.
             );
 
-            CharModelImpl charModelRenderer = new CharModelImpl(_graphicsDevice, _resourceManager,
+            CharModelRenderer charModelRenderer = new CharModelRenderer(_graphicsDevice, _pipelineProvider,
                 _textureManager, factory, initParam);
 
             Console.WriteLine($"Initialized with model: {charModelRenderer.CharModel.GetName()}");
@@ -172,7 +173,7 @@ namespace FFLSharp.VeldridBasicShaderSample
 
                     // Create a new model from the next instance in the list
                     charModelRenderer?.Dispose();
-                    charModelRenderer = new CharModelImpl(_graphicsDevice, _resourceManager,
+                    charModelRenderer = new CharModelRenderer(_graphicsDevice, _pipelineProvider,
                         _textureManager, factory, new CharModelInitParam(
                         data: storeDataList[currentStoreDataIndex],
                         expressionFlag: CharModelInitParam.MakeExpressionFlag(
@@ -186,7 +187,7 @@ namespace FFLSharp.VeldridBasicShaderSample
                     rotationAngle = 0.0f;
                 }
 
-                UpdateCharModelBlink(ref isBlinking, stopwatchBlink, ref charModelRenderer, initialExpression);
+                UpdateCharModelBlink(ref isBlinking, stopwatchBlink, charModelRenderer, initialExpression);
 
                 // Update view uniforms and draw the CharModel.
                 charModelRenderer.UpdateViewUniforms(modelMatrix, viewMatrix, projectionMatrix);
@@ -226,13 +227,16 @@ namespace FFLSharp.VeldridBasicShaderSample
 
             // Enable use of 8_8_8_8 format for normals rather than 10_10_10_2.
             FFLProperties.NormalIsSnorm8_8_8_8 = true; // Because Veldrid doesn't support 10_10_10_2
+
+            // Do not use front face culling for flipped X, prefer to swap index buffer.
+            FFLProperties.FrontCullForFlipX = false;
         }
 
         private const int _blinkInterval = 3000; // 3 secs
         private const int _blinkDuration = 80;   // 80ms
 
         private static void UpdateCharModelBlink(ref bool isBlinking, Stopwatch stopwatch,
-            ref CharModelImpl charModelImpl, FFLExpression initialExpression)
+            CharModelRenderer charModelImpl, FFLExpression initialExpression)
         {
             // Get the current time to compare against.
             long currentTime = stopwatch.ElapsedMilliseconds;
@@ -264,7 +268,7 @@ namespace FFLSharp.VeldridBasicShaderSample
         {
             // Free texture and resource managers
             _textureManager.Dispose();
-            _resourceManager.Dispose();
+            _pipelineProvider.Dispose();
 
             FFLManager.Dispose(); // Calls FFLExit and then frees FFL resource.
 

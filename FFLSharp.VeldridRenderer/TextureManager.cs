@@ -16,16 +16,23 @@ namespace FFLSharp.VeldridRenderer
 
         // Mapping from FFLTexture pointer to Veldrid Texture
         // ShaderCallbackHandler reads from this, so it is public.
-        public ConcurrentDictionary<UIntPtr, Texture> TextureMap = new();
+        public ConcurrentDictionary<UIntPtr, Texture> TextureMap = new ConcurrentDictionary<UIntPtr, Texture>();
 
         // Counter for generating unique texture handles
         private ulong _nextTextureHandle = 1;
-        private readonly object _handleLock = new(); // Lock for handle count.
+        private readonly object _handleLock = new object(); // Lock for handle count.
 
         // Callback structure to register to FFL
         private FFLTextureCallback _textureCallback;
         // Handle to be pinned and used when setting the callback.
         private GCHandle? _gcHandle;
+
+        // Define unmanaged function delegates.
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CreateDelegate(void* pObj, FFLTextureInfo* pTextureInfo, void* pTexture);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void DeleteDelegate(void* pObj, void* pTexture);
+
 
         public TextureManager(GraphicsDevice graphicsDevice)
         {
@@ -51,20 +58,9 @@ namespace FFLSharp.VeldridRenderer
             // Allocate a GCHandle for this instance to prevent GC from moving or collecting it.
             _gcHandle = GCHandle.Alloc(this);
 
-            // Create an instance of the callback structure
-            _textureCallback = new FFLTextureCallback
-            {
-                pObj = (void*)GCHandle.ToIntPtr(_gcHandle.Value),
-                pCreateFunc = &CreateTextureCallback,
-                pDeleteFunc = &DeleteTextureCallback // ^^ Static function pointers
-            };
-            // Get a pointer to the unmanaged structure
-            fixed (FFLTextureCallback* p = &_textureCallback)
-            {
-                // Register the callback with FFL
-                FFL.SetTextureCallback(p);
-            }
-
+            FFLTextureCallback* pTextureCallback = GetTextureCallback();
+            // Register the callback with FFL.
+            FFL.SetTextureCallback(pTextureCallback);
         }
 
         /// <summary>
@@ -76,13 +72,21 @@ namespace FFLSharp.VeldridRenderer
             _gcHandle = GCHandle.Alloc(this, GCHandleType.Weak);
             // ^^ GCHandleType.Weak allows the GC to still collect this.
 
-            // Create an instance of the callback structure
+            // Create delegate instances.
+            CreateDelegate createDelegate = new CreateDelegate(CreateTextureCallback);
+            DeleteDelegate deleteDelegate = new DeleteDelegate(DeleteTextureCallback);
+
+            // Create an instance of the callback structure.
             _textureCallback = new FFLTextureCallback
             {
                 pObj = (void*)GCHandle.ToIntPtr(_gcHandle.Value),
-                pCreateFunc = &CreateTextureCallback,
-                pDeleteFunc = &DeleteTextureCallback // ^^ Static function pointers
+                // Important: This needs to be false in order
+                // for textures to be linear when using FFL resources.
+                useOriginalTileMode = 0, // false
+                pCreateFunc = Marshal.GetFunctionPointerForDelegate(createDelegate),
+                pDeleteFunc = Marshal.GetFunctionPointerForDelegate(deleteDelegate) // ^^ Static function pointers
             };
+
             fixed (FFLTextureCallback* p = &_textureCallback)
             {
                 return p;
@@ -127,32 +131,35 @@ namespace FFLSharp.VeldridRenderer
             }
             return false; // could not be found
         }
-        private void CreateTexture(FFLTextureInfo* pTextureInfo, void** ppTexture) // NOTE: pTexture is void**
+
+        private void CreateTexture(FFLTextureInfo* pTextureInfo, void** ppTexture)
         {
             //UIntPtr* textureHandle = (UIntPtr*)ppTexture; // Dereference to actual texture handle
             // Log creation request
             Console.WriteLine($"CreateTexture: width={pTextureInfo->width}, height={pTextureInfo->height}, format={pTextureInfo->format}");
 
             // Determine Veldrid PixelFormat based on FFL format
-            PixelFormat pixelFormat = ConvertFFLFormatToVeldrid(pTextureInfo->format);
+            PixelFormat pixelFormat = ConvertFFLFormatToVeldrid((FFLTextureFormat)pTextureInfo->format);
 
             // Create Veldrid Texture
+            Debug.Assert(pTextureInfo->mipCount != 0); // must not be zero, should be more than 1
 
             TextureDescription textureDesc = TextureDescription.Texture2D(
                 pTextureInfo->width,
                 pTextureInfo->height,
-                1,//(uint)pTextureInfo->numMips, // TODO: no mipmaps
+                //mipLevels: 1,
+                (uint)pTextureInfo->mipCount,
                 1,
                 pixelFormat,
                 TextureUsage.Sampled | TextureUsage.Storage);
 
             Texture texture = _factory.CreateTexture(ref textureDesc);
 
-            // Upload texture data
+            // Upload texture data.
             if (pTextureInfo->imagePtr != null)
             {
-                // Use the unmanaged pointer directly
-                uint imageSize = pTextureInfo->size;
+                uint imageSize = pTextureInfo->imageSize;
+                // Use the unmanaged imagePtr pointer directly:
                 IntPtr imagePtr = (IntPtr)pTextureInfo->imagePtr;
 
                 // Update the texture using the pointer
@@ -160,7 +167,7 @@ namespace FFLSharp.VeldridRenderer
                     texture,
                     imagePtr,
                     imageSize,
-                    0, 0, 0,
+                    0, 0, 0, // x, y, z
                     pTextureInfo->width,
                     pTextureInfo->height,
                     depth: 1,
@@ -168,12 +175,54 @@ namespace FFLSharp.VeldridRenderer
                     arrayLayer: 0);
             }
 
+            // Upload mipmaps if they exist.
+            UploadMipmaps(texture, pTextureInfo, pixelFormat);
+
             // Add the texture to TextureMap and assign it a handle
             UIntPtr textureHandle = AddTextureToMap(texture);
 
             *ppTexture = (void*)textureHandle;
 
             Console.WriteLine($"CreateTexture: Created handle:  {textureHandle}");
+        }
+
+        // Break out mipmap uploading logic into this function:
+        private void UploadMipmaps(Texture texture, FFLTextureInfo* pTextureInfo, PixelFormat pixelFormat)
+        {
+            if (pTextureInfo->mipPtr == null || pTextureInfo->mipCount < 2) // Skip if there are no mipmaps.
+                return;
+
+            // Upload texture data for each mipmap level.
+            //IntPtr currentMipPtr = (IntPtr)pTextureInfo->mipPtr;
+            uint bytesPerPixel = FormatSizeHelpers.GetSizeInBytes(pixelFormat);
+            // Iterate through mip levels after 1 (full texture)
+            for (int mipLevel = 1; mipLevel < pTextureInfo->mipCount; mipLevel++)
+            {
+                int mipOffset = (int)pTextureInfo->mipLevelOffset[mipLevel - 1];
+
+                IntPtr currentMipPtr = (IntPtr)pTextureInfo->mipPtr + mipOffset;
+
+                // Calculate the dimensions of the current mip level.
+                uint mipWidth = (uint)Math.Max(1, pTextureInfo->width >> mipLevel);
+                uint mipHeight = (uint)Math.Max(1, pTextureInfo->height >> mipLevel);
+
+                // Calculate the size of the current mipmap data.
+                uint mipSize = mipWidth * mipHeight * bytesPerPixel;
+
+                // Update the texture with the current mipmap.
+                _graphicsDevice.UpdateTexture(
+                    texture,
+                    currentMipPtr,
+                    mipSize,
+                    0, 0, 0, // x, y, z
+                    mipWidth,
+                    mipHeight,
+                    depth: 1,
+                    (uint)mipLevel,
+                    arrayLayer: 0);
+                // Advance the pointer to the next mip level.
+                //currentMipPtr += (int)mipSize;
+            }
         }
 
         public void DeleteTexture(void** ppTexture)
@@ -211,7 +260,6 @@ namespace FFLSharp.VeldridRenderer
         }
 
         // Delegate instances
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         public static unsafe void CreateTextureCallback(void* pObj, FFLTextureInfo* pTextureInfo, void* pTexture)
         {
             GCHandle handle = GCHandle.FromIntPtr((IntPtr)pObj);
@@ -220,7 +268,6 @@ namespace FFLSharp.VeldridRenderer
             instance.CreateTexture(pTextureInfo, (void**)pTexture);
         }
 
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         public static unsafe void DeleteTextureCallback(void* pObj, void* pTexture)
         {
             GCHandle handle = GCHandle.FromIntPtr((IntPtr)pObj);

@@ -3,15 +3,16 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Diagnostics; // for assert
 using Veldrid;
-using System.Reflection;
+using static FFLSharp.VeldridRenderer.BasicShaderPipelineProvider;
+using System;
 
 namespace FFLSharp.VeldridRenderer
 {
-    public class DrawParamGpuHandler : IDisposable
+    public class DrawParamGpuBuffer : IDisposable
     {
         private readonly GraphicsDevice _graphicsDevice;
         private readonly ResourceFactory _factory;
-        private readonly ICharModelResource _resourceManager;
+        private readonly IPipelineProvider _pipelineProvider;
         private readonly TextureManager _textureManager;
 
         private DeviceBuffer _indexBuffer;
@@ -31,7 +32,7 @@ namespace FFLSharp.VeldridRenderer
         private ResourceSet _resourceSet;
 
         // ModulateParam in the initial DrawParam, where the pTexture2D pointer is stored.
-        private unsafe FFLModulateParam* _pModulateParam = null; // Will clear pTexture2D on disposal.
+        //private unsafe FFLModulateParam* _pModulateParam = null; // Will clear pTexture2D on disposal.
         private UIntPtr _textureHandle = UIntPtr.Zero; // Bound texture handle.
 
         private TextureView? _textureView; // Currently bound TextureView.
@@ -42,30 +43,33 @@ namespace FFLSharp.VeldridRenderer
         private Pipeline _pipeline;
 
         // Store modulate type of this DrawParam.
-        //public FFLModulateType ModulateType;
+        public FFLModulateType ModulateType;
 
         /// <summary>
         /// Manages resources for a single DrawParam.
         /// </summary>
         /// <param name="graphicsDevice">Veldrid GraphicsDevice.</param>
-        /// <param name="resourceManager">ResourceManager instance containing pipelines, resource layout, shaders.</param>
+        /// <param name="pipelineProvider">IPipelineProvider containing pipelines, resource layout, shaders.</param>
         /// <param name="textureManager">TextureManager containing textures referenced by DrawParams.</param>
         /// <param name="drawParam">FFLDrawParam instance containing current shape to render.</param>
         /// <param name="overrideTexture">Optional texture that will override the DrawParam texture if set. Intended for mask and faceline.</param>
-        public DrawParamGpuHandler(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
-            TextureManager textureManager, ref FFLDrawParam drawParam, Texture? overrideTexture = null)
+        public unsafe DrawParamGpuBuffer(GraphicsDevice graphicsDevice, IPipelineProvider pipelineProvider,
+            TextureManager textureManager, FFLDrawParam* pDrawParam, Texture? overrideTexture = null)
         {
             _graphicsDevice = graphicsDevice;
             _factory = graphicsDevice.ResourceFactory;
-            _resourceManager = resourceManager;
+            _pipelineProvider = pipelineProvider;
             _textureManager = textureManager;
             _overrideTexture = overrideTexture;
 
+            // Update ModulateType.
+            ModulateType = pDrawParam->modulateParam.type;
+
             // Note: Index buffer must not be blank, the caller should ensure this.
-            UpdateIndexBuffer(drawParam.primitiveParam);
-            SetPipeline(drawParam.modulateParam.type); // Attribute binding depends on vertexLayout being set correctly.
-            //UpdateVertexBufferSingle(drawParam.attributeBufferParam); // Depends on ^^
-            UpdateVertexBuffers(drawParam.attributeBufferParam);
+            UpdateIndexBuffer(pDrawParam->primitiveParam);
+            SetPipeline(pDrawParam->modulateParam.type); // Attribute binding depends on vertexLayout being set correctly.
+            //UpdateVertexBufferSingle(pDrawParam->attributeBufferParam); // Depends on ^^
+            UpdateVertexBuffers(pDrawParam->attributeBufferParam);
 
             // Create uniform buffers.
             _vertexUniformBuffer = _factory.CreateBuffer(new BufferDescription(
@@ -75,11 +79,37 @@ namespace FFLSharp.VeldridRenderer
             // Initialize all view uniforms to identity matrix.
             //UpdateViewUniforms(Matrix4x4.Identity, Matrix4x4.Identity, Matrix4x4.Identity);
 
-            UpdateResourceSet(ref drawParam.modulateParam);
+            UpdateResourceSet(&pDrawParam->modulateParam);
 
-            UpdateFragmentUniforms(drawParam.modulateParam);
-            //ModulateType = drawParam.modulateParam.type; // Store modulate type here
+            UpdateFragmentUniforms(pDrawParam->modulateParam);
         }
+
+        /// <summary>
+        /// Sets fragment uniforms based on modulate parameters.
+        /// </summary>
+        /// <param name="modulateParam">FFLModulateParam containing mode/type, const colors, etc.</param>
+        private void UpdateFragmentUniforms(FFLModulateParam modulateParam)
+        {
+            _fragmentUniforms.ModulateMode = (int)modulateParam.mode;
+            // Set constant colors if they exist.
+            unsafe // Dereferencing color pointers.
+            {
+                // Directly cast FFLColor to System.Numerics.Vector4.
+                _fragmentUniforms.ColorR = modulateParam.pColorR != null
+                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorR)
+                    : RgbaFloat.Clear;
+                _fragmentUniforms.ColorG = modulateParam.pColorG != null
+                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorG)
+                    : RgbaFloat.Clear;
+                _fragmentUniforms.ColorB = modulateParam.pColorB != null
+                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorB)
+                    : RgbaFloat.Clear;
+            }
+            // Update fragment uniform buffer.
+            _graphicsDevice.UpdateBuffer(_fragmentUniformBuffer, 0, ref _fragmentUniforms);
+        }
+
+
         private unsafe void UpdateIndexBuffer(FFLPrimitiveParam primitiveParam) // Unsafe: directly binds buffer
         {
             // Constructor must confirm that the index buffer/count here is not null.
@@ -107,25 +137,25 @@ namespace FFLSharp.VeldridRenderer
 
             // Faceline/mask 2D plane drawing:
             if (type > FFLModulateType.FFL_MODULATE_TYPE_MOLE) // Highest
-                _pipeline = _resourceManager.PipelineFaceline2DPlane; // This is faceline
+                _pipeline = _pipelineProvider.PipelineFaceline2DPlane; // This is faceline
             else if (type > FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MAX - 1)
-                _pipeline = _resourceManager.PipelineMask2DPlane; // This is mask, second highest
+                _pipeline = _pipelineProvider.PipelineMask2DPlane; // This is mask, second highest
 
             // DrawXlu stage:
 
             else if (type == FFLModulateType.FFL_MODULATE_TYPE_SHAPE_GLASS)
-                _pipeline = _resourceManager.PipelineShapeXluGlass; // No culling for glass
+                _pipeline = _pipelineProvider.PipelineShapeXluGlass; // No culling for glass
             else if (type > FFLModulateType.FFL_MODULATE_TYPE_SHAPE_CAP) // Highest Opa shape
-                _pipeline = _resourceManager.PipelineShapeXlu;
+                _pipeline = _pipelineProvider.PipelineShapeXlu;
 
             // DrawOpa stage:
 
             /*
             else if (drawParam.modulateParam.type == FFLModulateType.FFL_MODULATE_TYPE_SHAPE_HAIR)
-                _pipeline = _resourceManager.PipelineShapeOpaHair; // Special case for extra hair attributes
+                _pipeline = _pipelineProvider.PipelineShapeOpaHair; // Special case for extra hair attributes
             */
             else
-                _pipeline = _resourceManager.PipelineShapeOpa; // Default
+                _pipeline = _pipelineProvider.PipelineShapeOpa; // Default
         }
 
         /// <summary>
@@ -138,7 +168,7 @@ namespace FFLSharp.VeldridRenderer
         {
             // Copy and interleave from the attribute pointers into one vertex buffer.
             byte[] vertexBuffer = VertexInterleaver.CopyInterleaveAttrBufToBytes(param,
-                _pipeline == _resourceManager.PipelineMask2DPlane || _pipeline == _resourceManager.PipelineFaceline2DPlane);
+                _pipeline == _pipelineProvider.PipelineMask2DPlane || _pipeline == _pipelineProvider.PipelineFaceline2DPlane);
             // Create the DeviceBuffer and update it.
             _vertexBuffer = _factory.CreateBuffer(new BufferDescription(
                 sizeInBytes: (uint)vertexBuffer.Length,
@@ -158,7 +188,7 @@ namespace FFLSharp.VeldridRenderer
             // Iterate over each attribute buffer.
 
             // Does the pipeline need only position and texCoord?
-            bool onlyPosTex = _pipeline.Equals(_resourceManager.PipelineMask2DPlane) || _pipeline.Equals(_resourceManager.PipelineFaceline2DPlane);
+            bool onlyPosTex = _pipeline.Equals(_pipelineProvider.PipelineMask2DPlane) || _pipeline.Equals(_pipelineProvider.PipelineFaceline2DPlane);
 
             /* Common missing attributes include:
              * normal   (stride = 4, 2D planes)
@@ -225,15 +255,15 @@ namespace FFLSharp.VeldridRenderer
             Sampler sampler = modulateType switch
             {
                 // Mirrored sampler:
-                FFLModulateType.FFL_MODULATE_TYPE_SHAPE_FACELINE => _resourceManager.SamplerMirror,
-                FFLModulateType.FFL_MODULATE_TYPE_SHAPE_CAP => _resourceManager.SamplerMirror,
-                FFLModulateType.FFL_MODULATE_TYPE_SHAPE_GLASS => _resourceManager.SamplerMirror,
-                _ => _resourceManager.Sampler // Clamp to edge by default.
+                FFLModulateType.FFL_MODULATE_TYPE_SHAPE_FACELINE => _pipelineProvider.SamplerMirror,
+                FFLModulateType.FFL_MODULATE_TYPE_SHAPE_CAP => _pipelineProvider.SamplerMirror,
+                FFLModulateType.FFL_MODULATE_TYPE_SHAPE_GLASS => _pipelineProvider.SamplerMirror,
+                _ => _pipelineProvider.Sampler // Clamp to edge by default.
             };
 
             // Create resource set
             _resourceSet = _factory.CreateResourceSet(new ResourceSetDescription(
-                _resourceManager.ResourceLayout, // Use resource layout from resourceManager
+                _pipelineProvider.ResourceLayout, // Use resource layout from pipelineProvider
                 _vertexUniformBuffer,
                 _fragmentUniformBuffer,
                 _textureView,
@@ -242,12 +272,12 @@ namespace FFLSharp.VeldridRenderer
         /// <summary>
         /// Creates or updates resource set with uniform buffers and texture from the ModulateParam.
         /// </summary>
-        /// <param name="modulateParam">FFLModulateParam</param>
-        private void UpdateResourceSet(ref FFLModulateParam modulateParam)
+        /// <param name="pModulateParam">FFLModulateParam</param>
+        private unsafe void UpdateResourceSet(FFLModulateParam* pModulateParam)
         {
             // This will be assigned to either this shape's texture, or a placeholder blank texture.
-            Texture texture = GetTextureIfExists(ref modulateParam);
-            UpdateResourceSet(modulateParam.type, texture);
+            Texture texture = GetTextureIfExists(pModulateParam);
+            UpdateResourceSet(pModulateParam->type, texture);
         }
 
 
@@ -269,8 +299,8 @@ namespace FFLSharp.VeldridRenderer
         /// <summary>
         /// Either returns a view of the DrawParam texture, or the default texture view.
         /// </summary>
-        /// <param name="modulateParam">FFLModulateParam</param>
-        private unsafe Texture GetTextureIfExists(ref FFLModulateParam modulateParam)
+        /// <param name="pModulateParam">FFLModulateParam</param>
+        private unsafe Texture GetTextureIfExists(FFLModulateParam* pModulateParam)
         {
             // If an override texture is set, always use that.
             if (_overrideTexture != null)
@@ -279,16 +309,16 @@ namespace FFLSharp.VeldridRenderer
             }
 
             // Attempt to get texture referenced in ModulateParam.
-            if (modulateParam.pTexture2D != null
+            if (pModulateParam->pTexture2D != null
                 // Make sure it is not using a placeholder either.
-                && !IsModulateTextureUsingPlaceholder(modulateParam))
+                && !IsModulateTextureUsingPlaceholder(*pModulateParam))
             {
-                UIntPtr textureHandle = (UIntPtr)modulateParam.pTexture2D;
+                UIntPtr textureHandle = (UIntPtr)pModulateParam->pTexture2D;
                 // Try to get the texture for this texture handle.
                 if (_textureManager.GetTextureFromMap(textureHandle, out Texture? texture) && texture != null)
                 {
                     // Set ModulateParam and current texture handle to dispose and clear later.
-                    _pModulateParam = (FFLModulateParam*)Unsafe.AsPointer(ref modulateParam);
+                    //_pModulateParam = pModulateParam;
                     _textureHandle = textureHandle;
                     return texture;
                 }
@@ -298,7 +328,7 @@ namespace FFLSharp.VeldridRenderer
                 // (Fall through)
             }
             // Use default texture if texture pointer is null
-            return _resourceManager.DefaultTexture;
+            return _pipelineProvider.DefaultTexture;
         }
 
         public void UpdateViewUniforms(Matrix4x4 model, Matrix4x4 view, Matrix4x4 projection)
@@ -308,31 +338,6 @@ namespace FFLSharp.VeldridRenderer
             _vertexUniforms.Projection = projection;
 
             _graphicsDevice.UpdateBuffer(_vertexUniformBuffer, 0, ref _vertexUniforms);
-        }
-
-        /// <summary>
-        /// Sets fragment uniforms based on modulate parameters.
-        /// </summary>
-        /// <param name="modulateParam">FFLModulateParam containing mode/type, const colors, etc.</param>
-        private void UpdateFragmentUniforms(FFLModulateParam modulateParam)
-        {
-            _fragmentUniforms.ModulateMode = (int)modulateParam.mode;
-            // Set constant colors if they exist.
-            unsafe // Dereferencing color pointers.
-            {
-                // Directly cast FFLColor to System.Numerics.Vector4.
-                _fragmentUniforms.ColorR = modulateParam.pColorR != null
-                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorR)
-                    : RgbaFloat.Clear;
-                _fragmentUniforms.ColorG = modulateParam.pColorG != null
-                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorG)
-                    : RgbaFloat.Clear;
-                _fragmentUniforms.ColorB = modulateParam.pColorB != null
-                    ? new RgbaFloat(*(Vector4*)modulateParam.pColorB)
-                    : RgbaFloat.Clear;
-            }
-            // Update fragment uniform buffer.
-            _graphicsDevice.UpdateBuffer(_fragmentUniformBuffer, 0, ref _fragmentUniforms);
         }
 
         public void Draw(CommandList commandList)
@@ -388,13 +393,21 @@ namespace FFLSharp.VeldridRenderer
             if (_textureHandle != UIntPtr.Zero)
             {
                 _textureManager.DisposeTextureHandle(_textureHandle);
+
                 _textureHandle = UIntPtr.Zero; // Reset to zero.
                 // Clear handle from ModulateParam.
+                /*
                 if (_pModulateParam != null)
+                {
+                    Console.WriteLine("_pModulateParam->pTexture2D being set to null");
                     _pModulateParam->pTexture2D = null;
+                    Console.WriteLine("done.");
+                }
+                _pModulateParam = null;
+                */
             }
 
-            // pipeline is managed by resourceManager
+            // pipeline is managed by pipelineProvider
         }
     }
 }

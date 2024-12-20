@@ -9,7 +9,7 @@ namespace FFLSharp.VeldridRenderer
     /// <summary>
     /// Contains sources for a basic shader pulled in from CharModelResource.
     /// </summary>
-    public static class ShaderSources
+    public static class BasicShaderSources
     {
 
         // Defining shader code into strings for now.

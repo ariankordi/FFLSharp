@@ -1,23 +1,23 @@
 using FFLSharp.Interop;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq.Expressions;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Veldrid;
 
 namespace FFLSharp.VeldridRenderer
 {
-    public class CharModelImpl : IDisposable
+    public class CharModelRenderer : IDisposable
     {
         private GraphicsDevice _graphicsDevice; // Passed to DrawParamRenderer
-        private ICharModelResource _resourceManager;
+        private IPipelineProvider _pipelineProvider;
         private TextureManager _textureManager;
         private ResourceFactory _factory; // Used for making faceline/mask textures.
 
         // Corresponding to DrawOpa/DrawXlu lists.
-        private readonly Dictionary<FFLModulateType, DrawParamGpuHandler> _opaParams = new Dictionary<FFLModulateType, DrawParamGpuHandler>();
-        private readonly Dictionary<FFLModulateType, DrawParamGpuHandler> _xluParams = new Dictionary<FFLModulateType, DrawParamGpuHandler>();
+        private readonly Dictionary<FFLModulateType, DrawParamGpuBuffer> _opaParams = new Dictionary<FFLModulateType, DrawParamGpuBuffer>();
+        private readonly Dictionary<FFLModulateType, DrawParamGpuBuffer> _xluParams = new Dictionary<FFLModulateType, DrawParamGpuBuffer>();
 
         // Render textures that need to be initialized before the model is drawn:
         // (Usually instantiated in FFLInitCharModelGPUStep, which is skipped here.)
@@ -36,30 +36,33 @@ namespace FFLSharp.VeldridRenderer
         // Current expression, controls which mask is active.
         public FFLExpression CurrentExpression { get; private set; } = FFLExpression.FFL_EXPRESSION_NORMAL;
 
-        public FFLCharModel CharModel { get; private set; }
+        public FFLCharModel CharModel;// { get; private set; }
 
-        // CharModel pointer used for FFL calls such as FFLSetExpression.
-        unsafe private FFLCharModel* _pCharModel;
-
-        public CharModelImpl(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+        public CharModelRenderer(GraphicsDevice graphicsDevice, IPipelineProvider pipelineProvider,
             TextureManager textureManager, ResourceFactory factory, /*CommandList commandList,*/ ref FFLCharModel charModel)
         {
-            Initialize(graphicsDevice, resourceManager, textureManager, factory, ref charModel);
+            unsafe
+            {
+                Initialize(graphicsDevice, pipelineProvider, textureManager, factory, (FFLCharModel*)Unsafe.AsPointer(ref charModel));
+            }
         }
 
-        public CharModelImpl(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+        public CharModelRenderer(GraphicsDevice graphicsDevice, IPipelineProvider pipelineProvider,
             TextureManager textureManager, ResourceFactory factory, CharModelInitParam param)
         {
             FFLCharModel charModel = FFLManager.CreateCharModel(param, textureManager);
             CharModel = charModel;
-            Initialize(graphicsDevice, resourceManager, textureManager, factory, ref charModel);
+            unsafe
+            {
+                Initialize(graphicsDevice, pipelineProvider, textureManager, factory, &charModel);
+            }
         }
-
-        public void Initialize(GraphicsDevice graphicsDevice, ICharModelResource resourceManager,
+/*
+        public void Initialize(GraphicsDevice graphicsDevice, IPipelineProvider pipelineProvider,
             TextureManager textureManager, ResourceFactory factory, ref FFLCharModel charModel)
         {
             _graphicsDevice = graphicsDevice;
-            _resourceManager = resourceManager;
+            _pipelineProvider = pipelineProvider;
             _textureManager = textureManager;
             _factory = factory; // Will also create and submit a new CommandList.
 
@@ -84,8 +87,8 @@ namespace FFLSharp.VeldridRenderer
             // ... we NEED to initialize charmodel textures always
 
             // Create and render mask and faceline textures.
-            //CreateRenderTextures(ref charModel, _resourceManager.SwapchainTexFormat.Value);
-            _modelTex = new(_graphicsDevice, _resourceManager, _textureManager, _factory, ref charModel);
+            //CreateRenderTextures(ref charModel, _pipelineProvider.SwapchainTexFormat.Value);
+            _modelTex = new CharModelTexturesRenderer(_graphicsDevice, _pipelineProvider, _textureManager, _factory, ref charModel);
 
             // Add shape draw params to _opaParams and _xluParams (call FFLGetDrawParam*)
             InitializeDrawParams(ref charModel);
@@ -106,7 +109,7 @@ namespace FFLSharp.VeldridRenderer
             AddDrawParam(ref charModel, model => (IntPtr)FFL.GetDrawParamXluGlass((FFLCharModel*)Unsafe.AsPointer(ref model)));
 
             // make sure this one here is present bc we update it later
-            Debug.Assert(_xluParams.GetValueOrDefault(FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK) != null);
+            Debug.Assert(_xluParams.TryGetValue(FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK, out DrawParamGpuBuffer _));
 
             // Delete CharModel instance. This only contains shape data that was already uploaded.
             FFL.DeleteCharModel((FFLCharModel*)Unsafe.AsPointer(ref charModel));
@@ -121,8 +124,8 @@ namespace FFLSharp.VeldridRenderer
             if (pDrawParam != null && pDrawParam->primitiveParam.indexCount != 0)
             { // Note: if the index count is 0, this shape is empty.
                 FFLModulateType modulateType = pDrawParam->modulateParam.type; // Key in dictionary
-                var renderer = new DrawParamGpuHandler(_graphicsDevice, _resourceManager,
-                    _textureManager, ref *pDrawParam, GetOverrideTexture(modulateType)); // Dereference DrawParam here
+                var renderer = new DrawParamGpuBuffer(_graphicsDevice, _pipelineProvider,
+                    _textureManager, pDrawParam, GetOverrideTexture(modulateType)); // Dereference DrawParam here
 
                 // Determine if the draw param is in the DrawOpa group based on its modulate type.
                 if (modulateType < FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK) // Less than mask? (cap, hair...)
@@ -132,6 +135,81 @@ namespace FFLSharp.VeldridRenderer
             }
 
         }
+*/
+        public unsafe void Initialize(GraphicsDevice graphicsDevice, IPipelineProvider pipelineProvider,
+            TextureManager textureManager, ResourceFactory factory, FFLCharModel* pCharModel)
+        {
+            // Store references to the passed parameters
+            _graphicsDevice = graphicsDevice;
+            _pipelineProvider = pipelineProvider;
+            _textureManager = textureManager;
+            _factory = factory;
+
+            // Ensure the CharModel pointer is valid and assign it
+            Debug.Assert(pCharModel != null, "pCharModel is null.");
+            Debug.Assert(((FFLiCharModel*)pCharModel)->charModelDesc.resolution != 0, "CharModel resolution is 0, suggesting it is not set up.");
+
+            // Copy CharModel data into the managed instance for safer access later.
+            CharModel = *pCharModel;
+
+            // Set the current expression from the unmanaged structure
+            CurrentExpression = ((FFLiCharModel*)pCharModel)->expression;
+
+            // Initialize textures for the CharModel
+            _modelTex = new CharModelTexturesRenderer(_graphicsDevice, _pipelineProvider, _textureManager, _factory, pCharModel);
+
+            // Extract and initialize draw parameters from the CharModel
+            InitializeDrawParams(pCharModel);
+        }
+
+        private unsafe void InitializeDrawParams(FFLCharModel* pCharModel)
+        {
+            // Extract and add DrawParams for Opaque (Opa) rendering
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamOpaFaceline(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamOpaBeard(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamOpaNose(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamOpaForehead(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamOpaHair(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamOpaCap(pCharModel));
+
+            // Extract and add DrawParams for Translucent (Xlu) rendering
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamXluMask(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamXluNoseLine(pCharModel));
+            AddDrawParam(pCharModel, () => (IntPtr)FFL.GetDrawParamXluGlass(pCharModel));
+
+            // Ensure a key parameter is present for later updates
+            Debug.Assert(_xluParams.TryGetValue(FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK, out DrawParamGpuBuffer _),
+                "Shape mask draw param is missing.");
+
+            // Delete the unmanaged CharModel only after all data is extracted
+            FFL.DeleteCharModel(pCharModel);
+        }
+
+        private unsafe void AddDrawParam(FFLCharModel* pCharModel, Func<IntPtr> getDrawParamFunc)
+        {
+            IntPtr drawParamPtr = getDrawParamFunc();
+
+            if (drawParamPtr != IntPtr.Zero)
+            {
+                FFLDrawParam* pDrawParam = (FFLDrawParam*)drawParamPtr;
+
+                if (pDrawParam->primitiveParam.indexCount != 0)
+                {
+                    // Extract modulation type for categorizing DrawParams
+                    FFLModulateType modulateType = pDrawParam->modulateParam.type;
+
+                    // Create a GPU buffer for rendering the parameter
+                    var renderer = new DrawParamGpuBuffer(
+                        _graphicsDevice, _pipelineProvider, _textureManager, pDrawParam, GetOverrideTexture(modulateType));
+
+                    // Categorize into Opa or Xlu based on modulation type
+                    if (modulateType < FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK)
+                        _opaParams.Add(modulateType, renderer); // Add to Opa
+                    else
+                        _xluParams.Add(modulateType, renderer); // Add to Xlu
+                }
+            }
+        }
 
         public unsafe void SetExpression(FFLExpression expression)
         {
@@ -140,7 +218,11 @@ namespace FFLSharp.VeldridRenderer
                 // If the mask was not created, texture will be null.
                 ?? throw new ExpressionNotSet(expression); // Don't bind a non-existent texture
 
-            FFL.SetExpression(_pCharModel, expression); // Set expression with FFL.
+            fixed (FFLCharModel* pCharModel = &CharModel)
+            {
+                FFL.SetExpression(pCharModel, expression); // Set expression with FFL.
+            }
+
             // Update the resource set to change the mask texture.
             _xluParams[FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK]
                 .UpdateResourceSet(FFLModulateType.FFL_MODULATE_TYPE_SHAPE_MASK, texture);
@@ -214,11 +296,13 @@ namespace FFLSharp.VeldridRenderer
             // Dispose DrawParamRenderers
             foreach (var renderer in _opaParams)
             {
+                //Console.WriteLine($"deleting opa: {renderer.Key}");
                 renderer.Value.Dispose();
             }
             _opaParams.Clear();
             foreach (var renderer in _xluParams)
             {
+                //Console.WriteLine($"deleting xlu: {renderer.Key}");
                 renderer.Value.Dispose();
             }
             _xluParams.Clear();
