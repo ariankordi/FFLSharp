@@ -2,27 +2,35 @@ namespace FFLSharp.Interop
 {
     public unsafe partial struct FFLTextureInfo
     {
-        [NativeTypeName("u32")]
-        public uint width;
+        [NativeTypeName("u16")]
+        public ushort width;
 
-        [NativeTypeName("u32")]
-        public uint height;
+        [NativeTypeName("u16")]
+        public ushort height;
 
-        public FFLiTextureFormat format;
+        [NativeTypeName("u8")]
+        public byte mipCount;
 
-        [NativeTypeName("u32")]
-        public uint size;
+        [NativeTypeName("u8")]
+        public byte format;
 
         [NativeTypeName("bool")]
         public byte isGX2Tiled;
 
-        [NativeTypeName("u32")]
-        public uint numMips;
+        [NativeTypeName("u8[1]")]
+        public fixed byte _padding[1];
 
-        [NativeTypeName("const void *")]
+        [NativeTypeName("u32")]
+        public uint imageSize;
+
         public void* imagePtr;
 
-        [NativeTypeName("const void *")]
+        [NativeTypeName("u32")]
+        public uint mipSize;
+
         public void* mipPtr;
+
+        [NativeTypeName("u32[13]")]
+        public fixed uint mipLevelOffset[13];
     }
 }

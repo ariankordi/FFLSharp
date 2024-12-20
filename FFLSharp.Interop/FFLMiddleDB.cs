@@ -4,7 +4,7 @@ namespace FFLSharp.Interop
 {
     public unsafe partial struct FFLMiddleDB
     {
-        [NativeTypeName("__AnonymousRecord_FFLMiddleDB_L20_C5")]
+        [NativeTypeName("__AnonymousRecord_FFLMiddleDB_L19_C5")]
         public _Anonymous_e__Union Anonymous;
 
         public ref byte data

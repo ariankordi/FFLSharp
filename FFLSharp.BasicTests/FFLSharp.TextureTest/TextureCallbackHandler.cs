@@ -122,14 +122,14 @@ namespace FFLSharp.TextureTest
             *textureHandle = UIntPtr.Zero;
         }
 
-        private static PixelFormat ConvertFFLFormatToVeldrid(FFLiTextureFormat fflFormat)
+        private static PixelFormat ConvertFFLFormatToVeldrid(FFLTextureFormat fflFormat)
         {
             // Map FFL texture formats to Veldrid PixelFormats
             return fflFormat switch
             {
-                FFLiTextureFormat.FFLI_TEXTURE_FORMAT_R8 => PixelFormat.R8_UNorm,
-                FFLiTextureFormat.FFLI_TEXTURE_FORMAT_RG8 => PixelFormat.R8_G8_UNorm,
-                FFLiTextureFormat.FFLI_TEXTURE_FORMAT_RGBA8 => PixelFormat.R8_G8_B8_A8_UNorm,
+                FFLTextureFormat.FFL_TEXTURE_FORMAT_R8_UNORM => PixelFormat.R8_UNorm,
+                FFLTextureFormat.FFL_TEXTURE_FORMAT_R8_G8_UNORM => PixelFormat.R8_G8_UNorm,
+                FFLTextureFormat.FFL_TEXTURE_FORMAT_R8_G8_B8_A8_UNORM => PixelFormat.R8_G8_B8_A8_UNorm,
                 _ => throw new NotSupportedException($"Unsupported FFL texture format: {fflFormat}"),
             };
         }

@@ -6,6 +6,12 @@ namespace FFLSharp.Interop
     {
         public void* pObj;
 
+        [NativeTypeName("bool")]
+        public byte useOriginalTileMode;
+
+        [NativeTypeName("u8[3]")]
+        public fixed byte _padding[3];
+
         [NativeTypeName("void (*)(void *, const FFLTextureInfo *, FFLTexture *)")]
         public IntPtr pCreateFunc;
 

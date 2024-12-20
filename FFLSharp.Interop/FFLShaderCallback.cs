@@ -6,6 +6,12 @@ namespace FFLSharp.Interop
     {
         public void* pObj;
 
+        [NativeTypeName("bool")]
+        public byte facelineColorIsTransparent;
+
+        [NativeTypeName("u8[3]")]
+        public fixed byte _padding[3];
+
         [NativeTypeName("void (*)(void *, bool, FFLRIOCompareFunc, f32)")]
         public IntPtr pApplyAlphaTestFunc;
 
