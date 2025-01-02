@@ -17,8 +17,7 @@ In this repo, you will find:
 * FFLSharp.VeldridCreateTGASample, which creates an icon of a Mii head and exports it to a TGA image.
 * (No sample using the FFLShader currently.)
 
-I'm hoping that the Veldrid stuff would help if anyone wanted to use Miis in other graphics APIs/game engines, including anything using OpenGL which would be really simple
-**especially if you use my FFL raylib samples to guide you: todo todo I reeeally have to publish these**
+I'm hoping that the Veldrid stuff would help if anyone wanted to use Miis in other graphics APIs/game engines, including anything using OpenGL which would be really simple especially if you use my FFL raylib samples to guide you: https://github.com/ariankordi/ffl-raylib-samples
 
 ## Building
 
