@@ -139,6 +139,8 @@ namespace FFLSharp.VeldridRenderer
                 // Delete DrawParams
             }
 
+            // Called in FFLiRenderMaskTextures before looping:
+            FFL.iInvalidatePartsTextures(&pTmpObject->maskTextures.partsTextures);
             // Loop through mask textures and render active ones.
             for (int i = 0; i < (int)FFLExpression.FFL_EXPRESSION_MAX; i++)
             {

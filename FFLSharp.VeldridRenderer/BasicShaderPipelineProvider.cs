@@ -24,12 +24,12 @@ namespace FFLSharp.VeldridRenderer
         // Pipelines for faceline/mask texture (2D plane) drawing:
 
         /// <summary>
-        /// Meant for 2D planes, only supports position/texcoord, no culling or depth, triangle strip.
+        /// Meant for 2D planes, only supports position/texcoord, no culling or depth.
         /// Uses blending for faceline texture.
         /// </summary>
         public Pipeline PipelineFaceline2DPlane { get; private set; }
         /// <summary>
-        /// Meant for 2D planes, only supports position/texcoord, no culling or depth, triangle strip.
+        /// Meant for 2D planes, only supports position/texcoord, no culling or depth.
         /// Uses blending for mask texture.
         /// </summary>
         public Pipeline PipelineMask2DPlane { get; private set; }
@@ -149,7 +149,9 @@ namespace FFLSharp.VeldridRenderer
                 },
                 DepthStencilState = DepthStencilStateDescription.Disabled, // No depth
                 RasterizerState = RasterizerStateDescription.CullNone,     // No culling
-                PrimitiveTopology = PrimitiveTopology.TriangleStrip,       // Triangle strip
+                // NOTE: As of FFL commit 04bfa6b4f4418a84c9a59521cf53339892916891
+                // this now uses triangle lists, however triangle strip still looks correct.
+                PrimitiveTopology = PrimitiveTopology.TriangleStrip,       // May be changed to triangle list later?
                 ShaderSet = new ShaderSetDescription(
                     vertexLayouts: VertexLayouts.VertexLayoutsPosTexSeparate,//VertexLayoutsPosTexOnly,
                     shaders: _shaders2D),                                  // This vertex shader has no uniforms
