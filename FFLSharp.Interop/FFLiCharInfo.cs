@@ -2,17 +2,17 @@ namespace FFLSharp.Interop
 {
     public unsafe partial struct FFLiCharInfo
     {
-        [NativeTypeName("u32")]
-        public uint miiVersion;
+        [NativeTypeName("s32")]
+        public int miiVersion;
 
-        [NativeTypeName("__AnonymousRecord_FFLiCharInfo_L19_C5")]
+        [NativeTypeName("__AnonymousRecord_FFLiCharInfo_L116_C5")]
         public _parts_e__Struct parts;
 
-        [NativeTypeName("u32")]
-        public uint height;
+        [NativeTypeName("s32")]
+        public int height;
 
-        [NativeTypeName("u32")]
-        public uint build;
+        [NativeTypeName("s32")]
+        public int build;
 
         [NativeTypeName("u16[11]")]
         public fixed ushort name[11];
@@ -20,15 +20,17 @@ namespace FFLSharp.Interop
         [NativeTypeName("u16[11]")]
         public fixed ushort creatorName[11];
 
-        public FFLGender gender;
+        [NativeTypeName("s32")]
+        public int gender;
 
-        [NativeTypeName("u32")]
-        public uint birthMonth;
+        [NativeTypeName("s32")]
+        public int birthMonth;
 
-        [NativeTypeName("u32")]
-        public uint birthDay;
+        [NativeTypeName("s32")]
+        public int birthDay;
 
-        public FFLFavoriteColor favoriteColor;
+        [NativeTypeName("s32")]
+        public int favoriteColor;
 
         [NativeTypeName("u8")]
         public byte favoriteMii;
@@ -42,26 +44,28 @@ namespace FFLSharp.Interop
         [NativeTypeName("u8")]
         public byte localOnly;
 
-        [NativeTypeName("u32")]
-        public uint regionMove;
+        [NativeTypeName("s32")]
+        public int regionMove;
 
-        public FFLFontRegion fontRegion;
+        [NativeTypeName("s32")]
+        public int fontRegion;
 
-        [NativeTypeName("u32")]
-        public uint pageIndex;
+        [NativeTypeName("s32")]
+        public int pageIndex;
 
-        [NativeTypeName("u32")]
-        public uint slotIndex;
+        [NativeTypeName("s32")]
+        public int slotIndex;
 
-        public FFLBirthPlatform birthPlatform;
+        [NativeTypeName("s32")]
+        public int birthPlatform;
 
-        public FFLCreateID creatorID;
+        public FFLCreateID createID;
 
         [NativeTypeName("u16")]
-        public ushort _112;
+        public ushort padding_0;
 
-        [NativeTypeName("u32")]
-        public uint authorType;
+        [NativeTypeName("s32")]
+        public int authorType;
 
         public FFLiAuthorID authorID;
 

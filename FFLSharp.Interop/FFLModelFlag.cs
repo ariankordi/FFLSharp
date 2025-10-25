@@ -10,5 +10,6 @@ namespace FFLSharp.Interop
         FFL_MODEL_FLAG_FACE_ONLY = unchecked(1 << (int)(FFL_MODEL_TYPE_FACE_ONLY)),
         FFL_MODEL_FLAG_FLATTEN_NOSE = 1 << 3,
         FFL_MODEL_FLAG_NEW_EXPRESSIONS = 1 << 4,
+        FFL_MODEL_FLAG_AFL_MODE = 1 << 6,
     }
 }

@@ -217,19 +217,19 @@ namespace FFLSharp.VeldridRenderer
 
             // Conditionally draw all mask params if their texture is not null.
             // Eyes and mouth are always present.
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsMustache[0],
-                pDrawParam->drawParamRawMaskPartsMustache[0].primitiveParam.indexCount, commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsMustache[1],
-                pDrawParam->drawParamRawMaskPartsMustache[1].primitiveParam.indexCount, commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsMouth, commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsEyebrow[0],
-                pDrawParam->drawParamRawMaskPartsEyebrow[0].primitiveParam.indexCount, commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsEyebrow[1],
-                pDrawParam->drawParamRawMaskPartsEyebrow[1].primitiveParam.indexCount, commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsEye[0], commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsEye[1], commandList, tmpParams);
-            DrawFromDrawParamOnce(ref pDrawParam->drawParamRawMaskPartsMole,
-                pDrawParam->drawParamRawMaskPartsMole.primitiveParam.indexCount, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->mustacheR,
+                pDrawParam->mustacheR.primitiveParam.indexCount, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->mustacheL,
+                pDrawParam->mustacheL.primitiveParam.indexCount, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->mouth, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->eyebrowR,
+                pDrawParam->eyebrowR.primitiveParam.indexCount, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->eyebrowL,
+                pDrawParam->eyebrowL.primitiveParam.indexCount, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->eyeR, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->eyeL, commandList, tmpParams);
+            DrawFromDrawParamOnce(ref pDrawParam->mole,
+                pDrawParam->mole.primitiveParam.indexCount, commandList, tmpParams);
             // ^^ Basically FFLiDrawRawMask
         }
 

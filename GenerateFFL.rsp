@@ -76,7 +76,6 @@ ffl/include/nn/ffl/FFLResourceDesc.h
 ffl/include/nn/ffl/FFLResource.h
 ffl/include/nn/ffl/FFLResourceType.h
 ffl/include/nn/ffl/FFLResult.h
-ffl/include/nn/ffl/FFLRIOInterop.h
 ffl/include/nn/ffl/FFLShaderCallback.h
 ffl/include/nn/ffl/FFLStandard.h
 ffl/include/nn/ffl/FFLTextureCallback.h

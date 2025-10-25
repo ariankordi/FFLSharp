@@ -2,7 +2,7 @@ namespace FFLSharp.Interop
 {
     public unsafe partial struct FFLPrimitiveParam
     {
-        [NativeTypeName("FFLRIOPrimitiveMode")]
+        [NativeTypeName("unsigned int")]
         public uint primitiveType;
 
         [NativeTypeName("u32")]

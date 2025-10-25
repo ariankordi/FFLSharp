@@ -2,73 +2,31 @@ namespace FFLSharp.Interop
 {
     public partial struct FFLiRawMaskDrawParam
     {
-        [NativeTypeName("FFLiRawMaskPartsDrawParam[2]")]
-        public _drawParamRawMaskPartsEye_e__FixedBuffer drawParamRawMaskPartsEye;
-
-        [NativeTypeName("FFLiRawMaskPartsDrawParam[2]")]
-        public _drawParamRawMaskPartsEyebrow_e__FixedBuffer drawParamRawMaskPartsEyebrow;
+        [NativeTypeName("FFLiRawMaskPartsDrawParam")]
+        public FFLDrawParam mustacheR;
 
         [NativeTypeName("FFLiRawMaskPartsDrawParam")]
-        public FFLDrawParam drawParamRawMaskPartsMouth;
-
-        [NativeTypeName("FFLiRawMaskPartsDrawParam[2]")]
-        public _drawParamRawMaskPartsMustache_e__FixedBuffer drawParamRawMaskPartsMustache;
+        public FFLDrawParam mustacheL;
 
         [NativeTypeName("FFLiRawMaskPartsDrawParam")]
-        public FFLDrawParam drawParamRawMaskPartsMole;
+        public FFLDrawParam mouth;
 
         [NativeTypeName("FFLiRawMaskPartsDrawParam")]
-        public FFLDrawParam drawParamRawMaskPartsFill;
+        public FFLDrawParam eyebrowR;
 
-        public partial struct _drawParamRawMaskPartsEye_e__FixedBuffer
-        {
-            public FFLDrawParam e0;
-            public FFLDrawParam e1;
+        [NativeTypeName("FFLiRawMaskPartsDrawParam")]
+        public FFLDrawParam eyebrowL;
 
-            public unsafe ref FFLDrawParam this[int index]
-            {
-                get
-                {
-                    fixed (FFLDrawParam* pThis = &e0)
-                    {
-                        return ref pThis[index];
-                    }
-                }
-            }
-        }
+        [NativeTypeName("FFLiRawMaskPartsDrawParam")]
+        public FFLDrawParam eyeR;
 
-        public partial struct _drawParamRawMaskPartsEyebrow_e__FixedBuffer
-        {
-            public FFLDrawParam e0;
-            public FFLDrawParam e1;
+        [NativeTypeName("FFLiRawMaskPartsDrawParam")]
+        public FFLDrawParam eyeL;
 
-            public unsafe ref FFLDrawParam this[int index]
-            {
-                get
-                {
-                    fixed (FFLDrawParam* pThis = &e0)
-                    {
-                        return ref pThis[index];
-                    }
-                }
-            }
-        }
+        [NativeTypeName("FFLiRawMaskPartsDrawParam")]
+        public FFLDrawParam mole;
 
-        public partial struct _drawParamRawMaskPartsMustache_e__FixedBuffer
-        {
-            public FFLDrawParam e0;
-            public FFLDrawParam e1;
-
-            public unsafe ref FFLDrawParam this[int index]
-            {
-                get
-                {
-                    fixed (FFLDrawParam* pThis = &e0)
-                    {
-                        return ref pThis[index];
-                    }
-                }
-            }
-        }
+        [NativeTypeName("FFLiRawMaskPartsDrawParam")]
+        public FFLDrawParam fill;
     }
 }

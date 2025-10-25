@@ -31,7 +31,7 @@ namespace FFLSharp.Interop
             }
         }
 
-        public ref sbyte m_HiddenParam
+        public ref byte m_HiddenParam
         {
             get
             {
@@ -42,7 +42,7 @@ namespace FFLSharp.Interop
             }
         }
 
-        public ref sbyte m_RandomParam
+        public ref byte m_RandomParam
         {
             get
             {
@@ -73,11 +73,11 @@ namespace FFLSharp.Interop
 
             [FieldOffset(0)]
             [NativeTypeName("char[4]")]
-            public fixed sbyte m_HiddenParam[4];
+            public fixed byte m_HiddenParam[4];
 
             [FieldOffset(0)]
             [NativeTypeName("char[4]")]
-            public fixed sbyte m_RandomParam[4];
+            public fixed byte m_RandomParam[4];
 
             [FieldOffset(0)]
             [NativeTypeName("u8[4]")]

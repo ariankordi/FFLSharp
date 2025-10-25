@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace FFLSharp.Interop
@@ -10,7 +9,31 @@ namespace FFLSharp.Interop
         public static extern byte iVerifyCharInfo([NativeTypeName("const FFLiCharInfo *")] FFLiCharInfo* pCharInfo, [NativeTypeName("bool")] byte verifyName);
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiVerifyCharInfoWithReason", ExactSpelling = true)]
-        public static extern FFLiVerifyCharInfoReason iVerifyCharInfoWithReason([NativeTypeName("const FFLiCharInfo *")] FFLiCharInfo* pCharInfo, [NativeTypeName("bool")] byte verifyName);
+        public static extern FFLiVerifyReason iVerifyCharInfoWithReason([NativeTypeName("const FFLiCharInfo *")] FFLiCharInfo* pCharInfo, [NativeTypeName("bool")] byte verifyName);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiiVerifyCharInfo", ExactSpelling = true)]
+        [return: NativeTypeName("bool")]
+        public static extern byte iiVerifyCharInfo([NativeTypeName("const FFLiCharInfo *")] FFLiCharInfo* pCharInfo, [NativeTypeName("bool")] byte verifyName);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiiGetEyeRotateOffset", ExactSpelling = true)]
+        [return: NativeTypeName("s32")]
+        public static extern int iiGetEyeRotateOffset([NativeTypeName("s32")] int type);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiiGetEyebrowRotateOffset", ExactSpelling = true)]
+        [return: NativeTypeName("s32")]
+        public static extern int iiGetEyebrowRotateOffset([NativeTypeName("s32")] int type);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiiGetAdjustedMouthH", ExactSpelling = true)]
+        [return: NativeTypeName("f32")]
+        public static extern float iiGetAdjustedMouthH([NativeTypeName("f32")] float height, [NativeTypeName("s32")] int type);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiiGetAdjustedEyeH", ExactSpelling = true)]
+        [return: NativeTypeName("f32")]
+        public static extern float iiGetAdjustedEyeH([NativeTypeName("f32")] float height, [NativeTypeName("s32")] int type);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiIsValidCharacterForName", ExactSpelling = true)]
+        [return: NativeTypeName("bool")]
+        public static extern byte iIsValidCharacterForName([NativeTypeName("u16")] ushort c);
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLInitCharModelCPUStep", ExactSpelling = true)]
         public static extern FFLResult InitCharModelCPUStep(FFLCharModel* pModel, [NativeTypeName("const FFLCharModelSource *")] FFLCharModelSource* pSource, [NativeTypeName("const FFLCharModelDesc *")] FFLCharModelDesc* pDesc);
@@ -91,6 +114,9 @@ namespace FFLSharp.Interop
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetViewModelType", ExactSpelling = true)]
         public static extern void SetViewModelType(FFLCharModel* pModel, FFLModelType type);
 
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetBoundingBox", ExactSpelling = true)]
+        public static extern void GetBoundingBox(FFLBoundingBox* pBoundingBox, [NativeTypeName("const FFLCharModel *")] FFLCharModel* pModel);
+
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetScale", ExactSpelling = true)]
         public static extern void SetScale([NativeTypeName("f32")] float scale);
 
@@ -117,6 +143,17 @@ namespace FFLSharp.Interop
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetAdditionalInfo", ExactSpelling = true)]
         public static extern FFLResult GetAdditionalInfo(FFLAdditionalInfo* pAdditionalInfo, FFLDataSource dataSource, [NativeTypeName("const void *")] void* pBuffer, [NativeTypeName("u16")] ushort index, [NativeTypeName("bool")] byte checkFontRegion);
 
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiEnableSpecialMii", ExactSpelling = true)]
+        public static extern void iEnableSpecialMii([NativeTypeName("u32")] uint key);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLpGetStoreDataFromCharInfo", ExactSpelling = true)]
+        [return: NativeTypeName("bool")]
+        public static extern byte pGetStoreDataFromCharInfo(FFLStoreData* pStoreData, [NativeTypeName("const FFLiCharInfo *")] FFLiCharInfo* pCharInfo);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLpGetCharInfoFromStoreData", ExactSpelling = true)]
+        [return: NativeTypeName("bool")]
+        public static extern byte pGetCharInfoFromStoreData(FFLiCharInfo* pCharInfo, FFLStoreData* pStoreData);
+
         [NativeTypeName("#define FFL_EXPRESSION_LIMIT 70")]
         public const int FFL_EXPRESSION_LIMIT = 70;
 
@@ -142,6 +179,9 @@ namespace FFLSharp.Interop
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetFavoriteColor", ExactSpelling = true)]
         public static extern FFLColor GetFavoriteColor([NativeTypeName("s32")] int index);
 
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetLinearGammaMode", ExactSpelling = true)]
+        public static extern void SetLinearGammaMode([NativeTypeName("bool")] byte isLinear);
+
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetFacelineColor", ExactSpelling = true)]
         public static extern FFLColor GetFacelineColor([NativeTypeName("s32")] int index);
 
@@ -157,16 +197,20 @@ namespace FFLSharp.Interop
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetExpressionFlagIndex", ExactSpelling = true)]
         public static extern void SetExpressionFlagIndex(FFLAllExpressionFlag* ef, [NativeTypeName("u32")] uint index, [NativeTypeName("bool")] byte set);
 
-        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiIsSameAuthorID", ExactSpelling = true)]
-        [return: NativeTypeName("bool")]
-        public static extern byte iIsSameAuthorID([NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* a, [NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* b);
-
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiIsHomeAuthorID", ExactSpelling = true)]
         [return: NativeTypeName("bool")]
         public static extern byte iIsHomeAuthorID([NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* pAuthorID);
 
-        [NativeTypeName("#define FFLI_AUTHOR_ID_SIZE (int)sizeof(u64)")]
-        public static readonly int FFLI_AUTHOR_ID_SIZE = (int)(sizeof(UIntPtr));
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiIsSameAuthorID", ExactSpelling = true)]
+        [return: NativeTypeName("bool")]
+        public static extern byte iIsSameAuthorID([NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* a, [NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* b);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiIsNullAuthorID", ExactSpelling = true)]
+        [return: NativeTypeName("bool")]
+        public static extern byte iIsNullAuthorID([NativeTypeName("const FFLiAuthorID *")] FFLiAuthorID* pAuthorID);
+
+        [NativeTypeName("#define FFLI_AUTHOR_ID_SIZE (8)")]
+        public const int FFLI_AUTHOR_ID_SIZE = (8);
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiInitCharModelCPUStep", ExactSpelling = true)]
         public static extern FFLResult iInitCharModelCPUStep(FFLiCharModel* pModel, [NativeTypeName("const FFLCharModelSource *")] FFLCharModelSource* pSource, [NativeTypeName("const FFLCharModelDesc *")] FFLCharModelDesc* pDesc, [NativeTypeName("const FFLTextureCallback *")] FFLTextureCallback* pCallback);
@@ -188,6 +232,9 @@ namespace FFLSharp.Interop
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiSetViewModelType", ExactSpelling = true)]
         public static extern void iSetViewModelType(FFLiCharModel* pModel, FFLModelType type);
+
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiGetBoundingBoxCharModel", ExactSpelling = true)]
+        public static extern void iGetBoundingBoxCharModel(FFLBoundingBox* pBoundingBox, [NativeTypeName("const FFLiCharModel *")] FFLiCharModel* pModel);
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiGetDrawParamOpaFacelineFromCharModel", ExactSpelling = true)]
         [return: NativeTypeName("const FFLDrawParam *")]
@@ -252,6 +299,9 @@ namespace FFLSharp.Interop
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiDrawRawMask", ExactSpelling = true)]
         public static extern void iDrawRawMask([NativeTypeName("const FFLiRawMaskDrawParam *")] FFLiRawMaskDrawParam* pDrawParam, FFLShaderCallback** pCallback);
 
+        [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiGetMaskMatrix", ExactSpelling = true)]
+        public static extern void iGetMaskMatrix([NativeTypeName("float[16]")] float* pBaseMtx44f, [NativeTypeName("f32")] float resolution);
+
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLiDeleteRenderTexture", ExactSpelling = true)]
         public static extern void iDeleteRenderTexture(FFLiRenderTexture* pRenderTexture);
 
@@ -292,7 +342,7 @@ namespace FFLSharp.Interop
         public static readonly int FFL_MIDDLE_DB_SIZE = (int)(sizeof(FFLiMiddleDB));
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLGetResourcePath", ExactSpelling = true)]
-        public static extern FFLResult GetResourcePath([NativeTypeName("char *")] sbyte* pDst, [NativeTypeName("u32")] uint size, FFLResourceType resourceType, [NativeTypeName("bool")] byte LG);
+        public static extern FFLResult GetResourcePath([NativeTypeName("char *")] byte* pDst, [NativeTypeName("u32")] uint size, FFLResourceType resourceType, [NativeTypeName("bool")] byte LG);
 
         [DllImport("ffl", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FFLSetShaderCallback", ExactSpelling = true)]
         public static extern void SetShaderCallback([NativeTypeName("const FFLShaderCallback *")] FFLShaderCallback* pCallback);

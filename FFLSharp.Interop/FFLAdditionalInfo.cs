@@ -8,31 +8,31 @@ namespace FFLSharp.Interop
         public fixed ushort name[11];
 
         [NativeTypeName("u16[11]")]
-        public fixed ushort creatorName[11];
+        public fixed ushort creator[11];
 
-        public FFLCreateID creatorID;
+        public FFLCreateID createID;
 
-        public FFLColor facelineColor;
+        public FFLColor skinColor;
 
         [NativeTypeName("__AnonymousRecord_FFLAdditionalInfo_L17_C5")]
         public _Anonymous_e__Union Anonymous;
 
         [NativeTypeName("u8")]
-        public byte faceType;
+        public byte facelineType;
 
         [NativeTypeName("u8")]
         public byte hairType;
 
-        public uint hairDir
+        public uint hairFlip
         {
             get
             {
-                return Anonymous.Anonymous.hairDir;
+                return Anonymous.Anonymous.hairFlip;
             }
 
             set
             {
-                Anonymous.Anonymous.hairDir = value;
+                Anonymous.Anonymous.hairFlip = value;
             }
         }
 
@@ -156,18 +156,18 @@ namespace FFLSharp.Interop
         {
             [FieldOffset(0)]
             [NativeTypeName("__AnonymousRecord_FFLAdditionalInfo_L19_C9")]
-            public _Anonymous_e__Struct Anonymous;
+            public _Anonymous_1_e__Struct Anonymous;
 
             [FieldOffset(0)]
             [NativeTypeName("u32")]
             public uint flags;
 
-            public partial struct _Anonymous_e__Struct
+            public partial struct _Anonymous_1_e__Struct
             {
                 public uint _bitfield;
 
                 [NativeTypeName("u32 : 1")]
-                public uint hairDir
+                public uint hairFlip
                 {
                     get
                     {
